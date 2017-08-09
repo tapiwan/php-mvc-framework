@@ -11,7 +11,14 @@ $autoloader->initializeNamespacesFromJSON("../config/autoload.json");
  * DEPENDENCY INJECTION CONTAINER
  */
 $container = new bitbetrieb\CMS\DependencyInjectionContainer\Container();
-$container->initializeMapFromJSON("../config/services.json");
+$container->initializeMapFromJSON("../config/dependencies.json");
+
+/**
+ * APPLICATION
+ */
+$application = $container->get('application');
+
+print_r($application);
 
 
 ?>

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "application",
+    "class": "bitbetrieb\\CMS\\Application\\Application",
+    "type": "singleton",
+    "dependencies": [
+      "front-controller"
+    ]
+  },
+  {
+    "id": "front-controller",
+    "class": "bitbetrieb\\CMS\\FrontController\\FrontController",
+    "type": "singleton",
+    "dependencies": []
+  }
+]
