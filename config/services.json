@@ -1,16 +1,21 @@
 [
-   {
-      "id": "database-handler",
-      "class": "bitbetrieb\\CMS\\DatabaseHandler\\MySqlDatabaseHandler",
-      "singleton": true,
-      "dependencies": [
-         "controller"
-      ]
-   },
-   {
-      "id": "controller",
-      "class": "bitbetrieb\\CMS\\Controller\\Controller",
-      "singleton": false,
-      "dependencies": []
-   }
+  {
+    "id": "database-handler",
+    "class": "bitbetrieb\\CMS\\DatabaseHandler\\MySqlDatabaseHandler",
+    "type": "singleton",
+    "dependencies": [
+      "controller"
+    ]
+  },
+  {
+    "id": "controller",
+    "class": "bitbetrieb\\CMS\\Controller\\Controller",
+    "type": "class",
+    "dependencies": []
+  },
+  {
+    "id": "DB_HOST",
+    "value": "app.strongenuff.de",
+    "type": "value"
+  }
 ]

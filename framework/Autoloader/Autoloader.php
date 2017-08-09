@@ -25,6 +25,8 @@ class Autoloader {
       foreach($autoloadJSON as $prefix => $base_dir) {
          $this->addNamespace($prefix, realpath('../'.$base_dir));
       }
+
+      $this->register();
    }
 
     /**

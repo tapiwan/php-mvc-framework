@@ -1,15 +1,17 @@
 <?php
 
+/**
+ * AUTOLOADER
+ */
 include realpath("../framework/Autoloader/Autoloader.php");
 $autoloader = new bitbetrieb\CMS\Autoloader\Autoloader();
 $autoloader->initializeNamespacesFromJSON("../config/autoload.json");
-$autoloader->register();
 
-$container = new bitbetrieb\CMS\ServiceContainer\Container();
-$container->initializeServicesFromJSON("../config/services.json");
-$container->get('database-handler');
-
-print_r($container);
+/**
+ * DEPENDENCY INJECTION CONTAINER
+ */
+$container = new bitbetrieb\CMS\DependencyInjectionContainer\Container();
+$container->initializeMapFromJSON("../config/services.json");
 
 
 ?>
