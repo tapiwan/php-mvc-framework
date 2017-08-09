@@ -1,0 +1,16 @@
+[
+   {
+      "id": "database-handler",
+      "class": "bitbetrieb\\CMS\\DatabaseHandler\\MySqlDatabaseHandler",
+      "singleton": true,
+      "dependencies": [
+         "controller"
+      ]
+   },
+   {
+      "id": "controller",
+      "class": "bitbetrieb\\CMS\\Controller\\Controller",
+      "singleton": false,
+      "dependencies": []
+   }
+]
