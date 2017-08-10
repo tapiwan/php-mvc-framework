@@ -39,5 +39,10 @@
     "id": "routes-php",
     "value": "../app/routes.php",
     "type": "value"
+  },
+  {
+    "id": "controller-namespace",
+    "value": "\\bitbetrieb\\CMS\\Controller\\",
+    "type": "value"
   }
 ]

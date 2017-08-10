@@ -2,6 +2,7 @@
 
 namespace bitbetrieb\CMS\FrontController;
 
+use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
 use bitbetrieb\CMS\HTTP\IRequest as IRequest;
 
 class FrontController implements IFrontController {
@@ -98,11 +99,12 @@ class FrontController implements IFrontController {
                 if(preg_match($pattern, $this->request->uri(), $params)) {
                     array_shift($params);
 
-                    $controller = new \ReflectionClass($data['controller']);
+                    $controllerClass = Container::get('controller-namespace').$data['controller'];
 
-                    /*$method = new \ReflectionMethod($data['controller'], $data['function']);*/
+                    $controller = new \ReflectionClass($controllerClass);
+                    $method = new \ReflectionMethod($controllerClass, $data['function']);
 
-                    $controller = $controller->newInstance();
+                    $method->invokeArgs($controller->newInstance(), $params);
                 }
             }
         }
