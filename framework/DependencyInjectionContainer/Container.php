@@ -3,35 +3,41 @@
 namespace bitbetrieb\CMS\DependencyInjectionContainer;
 
 class Container implements IContainer {
-    private $map = [];
+    /**
+     * @var array $map Array welches die Komponenten und deren Abhängigkeiten enthält
+     */
+    private static $map = [];
 
-    public function initializeMapFromJSON($pathToFile) {
+    /**
+     * @param string $json
+     */
+    public static function initializeViaJSON($json) {
         # Read file
-        $mapJSON = json_decode(file_get_contents(realpath($pathToFile)));
+        $mapJSON = json_decode($json);
 
         # Add namespaces and base directories from JSON to autoloader
         foreach($mapJSON as $item) {
             if($item->type === 'value') {
-                $this->addValue($item->id, $item->value);
+                self::addValue($item->id, $item->value);
             }
             else if($item->type === 'class') {
-                $this->addClass($item->id, $item->class, $item->dependencies);
+                self::addClass($item->id, $item->class, $item->dependencies);
             }
             else if($item->type === 'singleton') {
-                $this->addSingleton($item->id, $item->class, $item->dependencies);
+                self::addSingleton($item->id, $item->class, $item->dependencies);
             }
         }
     }
 
-    public function addValue($id, $value) {
-        $this->map[$id] = (object)[
+    public static function addValue($id, $value) {
+        self::$map[$id] = (object)[
             "value" => $value,
             "type" => "value"
         ];
     }
 
-    public function addSingleton($id, $value, $dependencies = null) {
-        $this->map[$id] = (object)[
+    public static function addSingleton($id, $value, $dependencies = null) {
+        self::$map[$id] = (object)[
             "value" => $value,
             "type" => "singleton",
             "dependencies" => $dependencies,
@@ -39,16 +45,16 @@ class Container implements IContainer {
         ];
     }
 
-    public function addClass($id, $value, $dependencies = null) {
-        $this->map[$id] = (object)[
+    public static function addClass($id, $value, $dependencies = null) {
+        self::$map[$id] = (object)[
             "value" => $value,
             "type" => "class",
             "dependencies" => $dependencies
         ];
     }
 
-    public function get($id) {
-        $item = $this->map[$id];
+    public static function get($id) {
+        $item = self::$map[$id];
 
         if(!isset($item)) {
             throw new \Exception("Dependency Injection: item with id '" . $id . "' is not mapped");
@@ -81,7 +87,7 @@ class Container implements IContainer {
                 //Löse Abhängigkeiten auf
                 $arguments = [];
                 foreach($item->dependencies as $dependencyId) {
-                    array_push($arguments, $this->get($dependencyId));
+                    array_push($arguments, self::get($dependencyId));
                 }
 
                 //Erzeuge Instanz mit Abhängigkeiten

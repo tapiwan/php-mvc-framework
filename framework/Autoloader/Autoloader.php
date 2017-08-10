@@ -9,7 +9,7 @@ class Autoloader {
      *
      * @var array
      */
-    protected $prefixes = array();
+    protected static $prefixes = array();
 
     /**
      * Read JSON file and add namespaces and base directories to autoloader
@@ -17,16 +17,16 @@ class Autoloader {
      * @param  string $pathToFile Path to file, going out from app root
      * @return void
      */
-    public function initializeNamespacesFromJSON($pathToFile) {
+    public static function initializeViaJSON($json) {
       # Read file
-      $autoloadJSON = json_decode(file_get_contents(realpath($pathToFile)));
+      $autoloadJSON = json_decode($json);
 
       # Add namespaces and base directories from JSON to autoloader
       foreach($autoloadJSON as $prefix => $base_dir) {
-         $this->addNamespace($prefix, realpath('../'.$base_dir));
+         self::addNamespace($prefix, realpath('../'.$base_dir));
       }
 
-      $this->register();
+      self::register();
    }
 
     /**
@@ -34,9 +34,9 @@ class Autoloader {
      *
      * @return void
      */
-    public function register()
+    public static function register()
     {
-        spl_autoload_register(array($this, 'loadClass'));
+        spl_autoload_register(array(self, 'loadClass'));
     }
 
     /**
@@ -50,7 +50,7 @@ class Autoloader {
      * than last.
      * @return void
      */
-    public function addNamespace($prefix, $base_dir, $prepend = false)
+    public static function addNamespace($prefix, $base_dir, $prepend = false)
     {
         // normalize namespace prefix
         $prefix = trim($prefix, '\\') . '\\';
@@ -59,15 +59,15 @@ class Autoloader {
         $base_dir = rtrim($base_dir, DIRECTORY_SEPARATOR) . '/';
 
         // initialize the namespace prefix array
-        if (isset($this->prefixes[$prefix]) === false) {
-            $this->prefixes[$prefix] = array();
+        if (isset(self::$prefixes[$prefix]) === false) {
+            self::$prefixes[$prefix] = array();
         }
 
         // retain the base directory for the namespace prefix
         if ($prepend) {
-            array_unshift($this->prefixes[$prefix], $base_dir);
+            array_unshift(self::$prefixes[$prefix], $base_dir);
         } else {
-            array_push($this->prefixes[$prefix], $base_dir);
+            array_push(self::$prefixes[$prefix], $base_dir);
         }
     }
 
@@ -78,7 +78,7 @@ class Autoloader {
      * @return mixed The mapped file name on success, or boolean false on
      * failure.
      */
-    public function loadClass($class)
+    public static function loadClass($class)
     {
         // the current namespace prefix
         $prefix = $class;
@@ -94,7 +94,7 @@ class Autoloader {
             $relative_class = substr($class, $pos + 1);
 
             // try to load a mapped file for the prefix and relative class
-            $mapped_file = $this->loadMappedFile($prefix, $relative_class);
+            $mapped_file = self::loadMappedFile($prefix, $relative_class);
             if ($mapped_file) {
                 return $mapped_file;
             }
@@ -116,15 +116,15 @@ class Autoloader {
      * @return mixed Boolean false if no mapped file can be loaded, or the
      * name of the mapped file that was loaded.
      */
-    protected function loadMappedFile($prefix, $relative_class)
+    protected static function loadMappedFile($prefix, $relative_class)
     {
         // are there any base directories for this namespace prefix?
-        if (isset($this->prefixes[$prefix]) === false) {
+        if (isset(self::$prefixes[$prefix]) === false) {
             return false;
         }
 
         // look through base directories for this namespace prefix
-        foreach ($this->prefixes[$prefix] as $base_dir) {
+        foreach (self::$prefixes[$prefix] as $base_dir) {
 
             // replace the namespace prefix with the base directory,
             // replace namespace separators with directory separators
@@ -134,7 +134,7 @@ class Autoloader {
                   . '.php';
 
             // if the mapped file exists, require it
-            if ($this->requireFile($file)) {
+            if (self::requireFile($file)) {
                 // yes, we're done
                 return $file;
             }
@@ -150,7 +150,7 @@ class Autoloader {
      * @param string $file The file to require.
      * @return bool True if the file exists, false if not.
      */
-    protected function requireFile($file)
+    protected static function requireFile($file)
     {
         if (file_exists($file)) {
             require $file;

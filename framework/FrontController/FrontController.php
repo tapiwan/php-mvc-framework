@@ -2,7 +2,7 @@
 
 namespace bitbetrieb\CMS\FrontController;
 
-class FrontController {
+class FrontController implements IFrontController {
    public function __construct() {
 
    }

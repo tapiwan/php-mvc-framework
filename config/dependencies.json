@@ -4,7 +4,8 @@
     "class": "bitbetrieb\\CMS\\Application\\Application",
     "type": "singleton",
     "dependencies": [
-      "front-controller"
+      "front-controller",
+      "config"
     ]
   },
   {
@@ -12,5 +13,18 @@
     "class": "bitbetrieb\\CMS\\FrontController\\FrontController",
     "type": "singleton",
     "dependencies": []
+  },
+  {
+    "id": "config",
+    "class": "bitbetrieb\\CMS\\Config\\Config",
+    "type": "singleton",
+    "dependencies": [
+      "config-file"
+    ]
+  },
+  {
+    "id": "config-file",
+    "value": "../config/config.json",
+    "type": "value"
   }
 ]

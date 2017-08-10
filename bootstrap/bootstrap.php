@@ -1,24 +1,26 @@
 <?php
+include realpath("../framework/Autoloader/Autoloader.php");
+use bitbetrieb\CMS\Autoloader\Autoloader as Autoloader;
+use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
 
 /**
  * AUTOLOADER
  */
-include realpath("../framework/Autoloader/Autoloader.php");
-$autoloader = new bitbetrieb\CMS\Autoloader\Autoloader();
-$autoloader->initializeNamespacesFromJSON("../config/autoload.json");
+$autoloadList = file_get_contents(realpath("../config/autoload.json"));
+Autoloader::initializeViaJSON($autoloadList);
 
 /**
  * DEPENDENCY INJECTION CONTAINER
  */
-$container = new bitbetrieb\CMS\DependencyInjectionContainer\Container();
-$container->initializeMapFromJSON("../config/dependencies.json");
+$dependencyList = file_get_contents(realpath("../config/dependencies.json"));
+Container::initializeViaJSON($dependencyList);
 
 /**
  * APPLICATION
  */
-$application = $container->get('application');
+$application = Container::get('application');
 
-print_r($application);
+print_r(print_r($application));
 
 
 ?>

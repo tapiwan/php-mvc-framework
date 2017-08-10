@@ -1,3 +1,6 @@
 {
-   
+  "db-host": "app.strongenuff.de",
+  "db-user": "tapiwan",
+  "db-name": "tapiwan",
+  "db-pass": "t4p1@Shop.!"
 }
