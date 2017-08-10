@@ -4,11 +4,15 @@ namespace bitbetrieb\CMS\DependencyInjectionContainer;
 
 class Container implements IContainer {
     /**
+     * Map mit allen Werten und Services
+     *
      * @var array $map Array welches die Komponenten und deren Abhängigkeiten enthält
      */
     private static $map = [];
 
     /**
+     * JSON Datei mit allen Werten und Services
+     *
      * @param string $json
      */
     public static function initializeViaJSON($json) {
@@ -29,6 +33,12 @@ class Container implements IContainer {
         }
     }
 
+    /**
+     * Wert zur Map hinzufügen
+     *
+     * @param $id
+     * @param $value
+     */
     public static function addValue($id, $value) {
         self::$map[$id] = (object)[
             "value" => $value,
@@ -36,6 +46,13 @@ class Container implements IContainer {
         ];
     }
 
+    /**
+     * Singleton zur Map hinzufügen
+     *
+     * @param $id
+     * @param $value
+     * @param null $dependencies
+     */
     public static function addSingleton($id, $value, $dependencies = null) {
         self::$map[$id] = (object)[
             "value" => $value,
@@ -45,6 +62,13 @@ class Container implements IContainer {
         ];
     }
 
+    /**
+     * Class zur Map hinzufügen
+     *
+     * @param $id
+     * @param $value
+     * @param null $dependencies
+     */
     public static function addClass($id, $value, $dependencies = null) {
         self::$map[$id] = (object)[
             "value" => $value,
@@ -53,6 +77,13 @@ class Container implements IContainer {
         ];
     }
 
+    /**
+     * Wert, Singleton oder Class nach $id zurückgeben
+     *
+     * @param $id
+     * @return object
+     * @throws \Exception
+     */
     public static function get($id) {
         $item = self::$map[$id];
 

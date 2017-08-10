@@ -12,7 +12,8 @@
     "class": "bitbetrieb\\CMS\\FrontController\\FrontController",
     "type": "singleton",
     "dependencies": [
-      "request"
+      "request",
+      "routes-php"
     ]
   },
   {
@@ -35,9 +36,8 @@
     "dependencies": []
   },
   {
-    "id": "pathfinder",
-    "class": "bitbetrieb\\CMS\\PathFinder\\PathFinder",
-    "type": "singleton",
-    "dependencies": []
+    "id": "routes-php",
+    "value": "../app/routes.php",
+    "type": "value"
   }
 ]
