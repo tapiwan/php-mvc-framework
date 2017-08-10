@@ -26,5 +26,6 @@ Container::initializeViaJSON($dependencyList);
  * APPLICATION
  */
 $application = Container::get('application');
+$application->start();
 
 ?>

@@ -4,15 +4,16 @@
     "class": "bitbetrieb\\CMS\\Application\\Application",
     "type": "singleton",
     "dependencies": [
-      "front-controller",
-      "config"
+      "front-controller"
     ]
   },
   {
     "id": "front-controller",
     "class": "bitbetrieb\\CMS\\FrontController\\FrontController",
     "type": "singleton",
-    "dependencies": []
+    "dependencies": [
+      "request"
+    ]
   },
   {
     "id": "config",
@@ -26,5 +27,17 @@
     "id": "config-file",
     "value": "../config/config.json",
     "type": "value"
+  },
+  {
+    "id": "request",
+    "class": "bitbetrieb\\CMS\\HTTP\\Request",
+    "type": "singleton",
+    "dependencies": []
+  },
+  {
+    "id": "pathfinder",
+    "class": "bitbetrieb\\CMS\\PathFinder\\PathFinder",
+    "type": "singleton",
+    "dependencies": []
   }
 ]
