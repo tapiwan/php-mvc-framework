@@ -2,20 +2,18 @@
 
 namespace bitbetrieb\CMS\Application;
 
+use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
 use bitbetrieb\CMS\FrontController\IFrontController as IFrontController;
 use bitbetrieb\CMS\Config\IConfig as IConfig;
+
 
 class Application {
     private $frontController;
     private $config;
 
     public function __construct(IFrontController $frontController, IConfig $config) {
-        global $container;
-
         $this->frontController = $frontController;
         $this->config = $config;
-
-        print_r($container);
     }
 
     public function document_root() {

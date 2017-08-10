@@ -1,5 +1,12 @@
 <?php
+/**
+ * INCLUDES
+ */
 include realpath("../framework/Autoloader/Autoloader.php");
+
+/**
+ * IMPORTS
+ */
 use bitbetrieb\CMS\Autoloader\Autoloader as Autoloader;
 use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
 
@@ -19,8 +26,5 @@ Container::initializeViaJSON($dependencyList);
  * APPLICATION
  */
 $application = Container::get('application');
-
-print_r(print_r($application));
-
 
 ?>
