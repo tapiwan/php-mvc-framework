@@ -44,5 +44,10 @@
     "id": "controller-namespace",
     "value": "\\bitbetrieb\\CMS\\Controller\\",
     "type": "value"
+  },
+  {
+    "id": "models-namespace",
+    "value": "\\bitbetrieb\\CMS\\Model\\",
+    "type": "value"
   }
 ]
