@@ -45,12 +45,21 @@ class Template implements ITemplate {
         echo $this->render();
     }
 
-    public function extend($file, $block = 'content') {
-        $tpl = new Template($file, [
-            $block => $this->render()
-        ]);
+    public function extend($file) {
+        //Variablen in Eltern-Template übernehmen
+        $vars = $this->vars;
+
+        //Content-Variable mit Content des Kind-Templates füllen
+        $vars['content'] = $this->render();
+
+        //Eltern-Template erzeugen
+        $tpl = new Template($file, $vars);
 
         return $tpl;
+    }
+
+    public function inc($file) {
+        require($this->resolveFilePath($file));
     }
 
     private function resolveFilePath($file) {
