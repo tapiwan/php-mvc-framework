@@ -45,6 +45,14 @@ class Template implements ITemplate {
         echo $this->render();
     }
 
+    public function extend($file, $block = 'content') {
+        $tpl = new Template($file, [
+            $block => $this->render()
+        ]);
+
+        return $tpl;
+    }
+
     private function resolveFilePath($file) {
         return Container::get('view-directory') . $file;
     }

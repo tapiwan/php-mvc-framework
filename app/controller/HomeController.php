@@ -10,15 +10,24 @@ class HomeController extends Controller {
     public function index(IRequest $request, IResponse $response) {
         $tpl = new Template('test.php', [
             "name" => "Tapiwan",
-            "blub" => "Blubbeeel",
-            "friends" => ["Test", "Blub", "Wtf"]
+            "orderId" => "Blubbeeel"
         ]);
 
-        $layout = new Template('index.php', [
-           'content' => $tpl->render()
+        $tpl = $tpl->extend('index.php');
+
+        $response->setBody($tpl->render());
+        $response->send();
+    }
+
+    public function test(IRequest $request, IResponse $response, $userName, $orderId) {
+        $tpl = new Template('test.php', [
+           "name" => $userName,
+           "orderId" => $orderId
         ]);
 
-        $response->setBody($layout->render());
+        $tpl = $tpl->extend('index.php');
+
+        $response->setBody($tpl->render());
         $response->send();
     }
 }

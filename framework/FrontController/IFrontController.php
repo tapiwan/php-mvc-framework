@@ -8,6 +8,7 @@ interface IFrontController {
     public function put($route, $callable);
     public function delete($route, $callable);
     public function addRoute($method, $route, $callable);
+    public function setErrorHandler($callable);
     public function execute();
 }
 
