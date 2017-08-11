@@ -13,8 +13,26 @@
     "type": "singleton",
     "dependencies": [
       "request",
+      "response",
       "routes-php"
     ]
+  },
+  {
+    "id": "request",
+    "class": "bitbetrieb\\CMS\\HTTP\\Request",
+    "type": "singleton",
+    "dependencies": []
+  },
+  {
+    "id": "response",
+    "class": "bitbetrieb\\CMS\\HTTP\\Response",
+    "type": "singleton",
+    "dependencies": []
+  },
+  {
+    "id": "routes-php",
+    "value": "../app/routes.php",
+    "type": "value"
   },
   {
     "id": "config",
@@ -27,17 +45,6 @@
   {
     "id": "config-file",
     "value": "../config/config.json",
-    "type": "value"
-  },
-  {
-    "id": "request",
-    "class": "bitbetrieb\\CMS\\HTTP\\Request",
-    "type": "singleton",
-    "dependencies": []
-  },
-  {
-    "id": "routes-php",
-    "value": "../app/routes.php",
     "type": "value"
   },
   {

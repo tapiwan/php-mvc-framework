@@ -3,6 +3,7 @@
 namespace bitbetrieb\CMS\FrontController;
 
 use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
+use bitbetrieb\CMS\HTTP\IResponse as IResponse;
 use bitbetrieb\CMS\HTTP\IRequest as IRequest;
 
 class FrontController implements IFrontController {
@@ -14,6 +15,13 @@ class FrontController implements IFrontController {
     private $request;
 
     /**
+     * Response Object
+     *
+     * @var IResponse
+     */
+    private $response;
+
+    /**
      * Route Sammlung
      *
      * @var array
@@ -21,21 +29,31 @@ class FrontController implements IFrontController {
     private $routes = [];
 
     /**
+     * Error Handler
+     *
+     * @var string
+     */
+    private $errorHandler;
+
+    /**
      * FrontController constructor.
      *
      * @param IRequest $request
-     * @param $routesPHP
+     * @param $routesFile
      */
-    public function __construct(IRequest $request, $routesPHP) {
+    public function __construct(IRequest $request, IResponse $response, $routesFile) {
         $this->request = $request;
-        include($routesPHP);
+        $this->response = $response;
+
+        //Route Datei einbinden
+        include($routesFile);
     }
 
     /**
      * GET Route hinzufügen
      *
-     * @param $route
-     * @param $callable
+     * @param string $route
+     * @param string $callable
      */
     public function get($route, $callable) {
         $this->addRoute("GET", $route, $callable);
@@ -44,8 +62,8 @@ class FrontController implements IFrontController {
     /**
      * POST Route hinzufügen
      *
-     * @param $route
-     * @param $callable
+     * @param string $route
+     * @param string $callable
      */
     public function post($route, $callable) {
         $this->addRoute("POST", $route, $callable);
@@ -54,8 +72,8 @@ class FrontController implements IFrontController {
     /**
      * PUT Route hinzufügen
      *
-     * @param $route
-     * @param $callable
+     * @param string $route
+     * @param string $callable
      */
     public function put($route, $callable) {
         $this->addRoute("PUT", $route, $callable);
@@ -64,8 +82,8 @@ class FrontController implements IFrontController {
     /**
      * DELETE Route hinzufügen
      *
-     * @param $route
-     * @param $callable
+     * @param string $route
+     * @param string $callable
      */
     public function delete($route, $callable) {
         $this->addRoute("DELETE", $route, $callable);
@@ -74,40 +92,166 @@ class FrontController implements IFrontController {
     /**
      * Route hinzufügen
      *
-     * @param $method
-     * @param $route
-     * @param $callable
+     * @param string $method
+     * @param string $route
+     * @param string $callable
      */
     public function addRoute($method, $route, $callable) {
-        $pattern = preg_replace("/({.*?})/", "(.*)", $route);
-        $pattern = '/^' . str_replace('/', '\/', $pattern) . '$/';
-        $callableParts = explode("@", $callable);
+        //Löse {platzhalter} der Route auf und ersetze sie durch den regulären Ausdruck (.*)
+        $pattern = $this->replaceMarkers($route);
 
-        $this->routes[$pattern] = [
+        //Escape Slashes der Route um regulären Ausdruck valide zu machen
+        $pattern = $this->escapeSlashes($pattern);
+
+        //Teile callable Zeichenkette auf in Controller und zugehörige Funktion
+        $callable = $this->readCallable($callable);
+
+        //Speichere Route
+        $this->routes[] = [
+            "pattern" => $pattern,
             "method" => $method,
-            "controller" => $callableParts[0],
-            "function" => $callableParts[1]
+            "controller" => $callable['controller'],
+            "function" => $callable['function']
         ];
     }
 
     /**
-     * Route ausfindig machen die zu URI des Request passt
+     * Setzt Controller und Funktion für Fehlerfälle
+     *
+     * @param string $callable Zeichenkette in Form von "controller@funktion"
+     */
+    public function setErrorHandler($callable) {
+        $this->errorHandler = $this->readCallable($callable);
+    }
+
+    /**
+     * Request and Controller delegieren wenn Route existiert.
+     * Wenn Route nicht existiert dann wird der Error Handler aufgerufen
      */
     public function execute() {
-        foreach($this->routes as $pattern => $data) {
-            if($data['method'] === $this->request->method()) {
-                if(preg_match($pattern, $this->request->uri(), $params)) {
-                    array_shift($params);
+        $route = $this->resolveRoute();
+        $arguments = $this->getRouteCallArguments($route);
 
-                    $controllerClass = Container::get('controller-namespace').$data['controller'];
+        //Controller Namespace und Klasse des Controllers zusammenfügen
+        $controllerClass = Container::get('controller-namespace') . $route['controller'];
 
-                    $controller = new \ReflectionClass($controllerClass);
-                    $method = new \ReflectionMethod($controllerClass, $data['function']);
+        //Controller Klassen Reflektor erzeugen
+        $controller = new \ReflectionClass($controllerClass);
 
-                    $method->invokeArgs($controller->newInstance(), $params);
+        //Controller Methoden Reflektor erzeugen
+        $method = new \ReflectionMethod($controllerClass, $route['function']);
+
+        //Controller mit Methode aufrufen und Parameter übergeben
+        $method->invokeArgs($controller->newInstance(), $arguments);
+    }
+
+    /**
+     * Sucht die vom Nutzer aufgerufenen Route. Wird diese nicht gefunden wird der ErrorHandler zurückgegeben
+     *
+     * @return mixed|string
+     */
+    private function resolveRoute() {
+        $result = $this->errorHandler;
+
+        foreach($this->routes as $route) {
+            if($this->routeMatchesMethod($route['method'])) {
+                if($this->routeMatchesPattern($route['pattern'])) {
+                    $result = $route;
                 }
             }
         }
+
+        return $result;
+    }
+
+    /**
+     * Überprüft ob die vom Client benutzte Methode der Routen Methode entspricht
+     *
+     * @param $method
+     * @return bool
+     */
+    private function routeMatchesMethod($method) {
+        return $method === $this->request->method();
+    }
+
+    /**
+     * Überprüft ob die vom Client aufgerufene URI mit dem regulären Ausdruck der Route übereinstimmt
+     *
+     * @param $pattern
+     * @return bool
+     */
+    private function routeMatchesPattern($pattern) {
+        $match = preg_match($pattern, $this->request->uri());
+
+        return ($match === 1) ? true : false;
+    }
+
+    /**
+     * Gibt die Parameter für den Funktionsaufruf des Subcontrollers zurück
+     *
+     * @param $route
+     * @return array
+     */
+    private function getRouteCallArguments($route) {
+        $params = [];
+
+        $params[] = $this->request;
+        $params[] = $this->response;
+
+        array_push($params, $this->getURIParameters($route['pattern']));
+
+        return $params;
+    }
+
+    /**
+     * Gibt die in der URI enthaltenen Parameter zurück
+     *
+     * @param $pattern
+     * @return array
+     */
+    private function getURIParameters($pattern) {
+        $params = [];
+
+        if(!empty($pattern) && preg_match($pattern, $this->request->uri(), $params)) {
+            array_shift($params);
+        }
+
+        return $params;
+    }
+
+    /**
+     * Verwandelt Route mit Platzhaltern zu einem regulären Ausdruck
+     *
+     * @param string $route Route mit Platzhaltern in Form von {platzhalter} z.B. /users/{name}/orders/{id}
+     * @return string Regulärer Ausdruck mit ersetzten Platzhaltern z.B. /users/(.*)/orders/(.*)
+     */
+    private function replaceMarkers($route) {
+        return preg_replace("/({.*?})/", "(.*)", $route);
+    }
+
+    /**
+     * Escaped Slashes und fügt Delimiter an regulären Ausdruck an
+     *
+     * @param string $string Zeichenkette mit Slashes die escaped werden müssen
+     * @return string Zeichenkette mit escapten Slashes
+     */
+    private function escapeSlashes($string) {
+        return '/^' . str_replace('/', '\/', $string) . '$/';
+    }
+
+    /**
+     * Callable Zeichenkette in Controller und Funktion aufteilen
+     *
+     * @param $string Callable Zeichenkette in Form von "controller@funktion"
+     * @return array
+     */
+    private function readCallable($string) {
+        $parts = explode("@", $string);
+
+        return [
+            'controller' => $parts[0],
+            'function' => $parts[1]
+        ];
     }
 }
 

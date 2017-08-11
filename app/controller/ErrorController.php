@@ -2,9 +2,9 @@
 
 namespace bitbetrieb\CMS\Controller;
 
-class HomeController extends Controller {
+class ErrorController extends Controller {
     public function index($request, $response) {
-        print_r(func_get_args());
+        echo "Error!";
     }
 }
 

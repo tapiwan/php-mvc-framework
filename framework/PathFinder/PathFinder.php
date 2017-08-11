@@ -8,7 +8,7 @@ class PathFinder {
      *
      * @return string
      */
-    public function document_root() {
+    public static function document_root() {
         return $_SERVER['DOCUMENT_ROOT'].DIRECTORY_SEPARATOR;
     }
 
@@ -17,7 +17,7 @@ class PathFinder {
      *
      * @return string
      */
-    public function base_dir() {
+    public static function base_dir() {
         return dirname($_SERVER['DOCUMENT_ROOT']).DIRECTORY_SEPARATOR;
     }
 
@@ -27,11 +27,11 @@ class PathFinder {
      * @param string $path
      * @return string
      */
-    public function dir($path = "") {
+    public static function dir($path = "") {
         $path = str_replace("/", DIRECTORY_SEPARATOR, $path);
         $path = str_replace("\\", DIRECTORY_SEPARATOR, $path);
 
-        return $this->base_dir().$path;
+        return self::base_dir().$path;
     }
 }
 
