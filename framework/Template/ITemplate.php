@@ -10,6 +10,7 @@ interface ITemplate {
     public function get($key);
     public function render();
     public function display();
+    public function extend($file, $block = 'content');
 }
 
 ?>
