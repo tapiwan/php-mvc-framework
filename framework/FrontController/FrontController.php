@@ -29,9 +29,9 @@ class FrontController implements IFrontController {
     private $routes = [];
 
     /**
-     * Error Handler
+     * Web Error Handler
      *
-     * @var string
+     * @var array
      */
     private $errorHandler;
 
@@ -44,9 +44,7 @@ class FrontController implements IFrontController {
     public function __construct(IRequest $request, IResponse $response, $routesFile) {
         $this->request = $request;
         $this->response = $response;
-
-        //Route Datei einbinden
-        include($routesFile);
+        $this->loadRoutes($routesFile);
     }
 
     /**
@@ -133,16 +131,18 @@ class FrontController implements IFrontController {
         $arguments = $this->getRouteCallArguments($route);
 
         //Controller Namespace und Klasse des Controllers zusammenfügen
-        $controllerClass = Container::get('controller-namespace') . $route['controller'];
+        $controllerClass = $this->getControllerClassWithNamespace($route['controller']);
 
-        //Controller Klassen Reflektor erzeugen
-        $controller = new \ReflectionClass($controllerClass);
+        $this->callControllerMethodWithArgs($controllerClass, $route['function'], $arguments);
+    }
 
-        //Controller Methoden Reflektor erzeugen
-        $method = new \ReflectionMethod($controllerClass, $route['function']);
-
-        //Controller mit Methode aufrufen und Parameter übergeben
-        $method->invokeArgs($controller->newInstance(), $arguments);
+    /**
+     * Lädt die Web Routen
+     *
+     * @param $file
+     */
+    private function loadRoutes($file) {
+        include($file);
     }
 
     /**
@@ -195,11 +195,12 @@ class FrontController implements IFrontController {
     private function getRouteCallArguments($route) {
         $params = [];
 
+        //Request und Response hinzufügen
         $params[] = $this->request;
         $params[] = $this->response;
 
-        $uriParams = $this->getURIParameters($route['pattern']);
-        foreach($uriParams as $param) {
+        //URI Parameter auslesen und hinzufügen
+        foreach($this->getURIParameters($route['pattern']) as $param) {
             $params[] = $param;
         }
 
@@ -255,6 +256,27 @@ class FrontController implements IFrontController {
             'controller' => $parts[0],
             'function' => $parts[1]
         ];
+    }
+
+    /**
+     * Namespace und Klassenname zusammen
+     *
+     * @param $class
+     * @return string
+     */
+    private function getControllerClassWithNamespace($class) {
+        return Container::get('controller-namespace').$class;
+    }
+
+    private function callControllerMethodWithArgs($class, $method, $args) {
+        //Controller Klassen Reflektor erzeugen
+        $controller = new \ReflectionClass($class);
+
+        //Controller Methoden Reflektor erzeugen
+        $method = new \ReflectionMethod($class, $method);
+
+        //Controller mit Methode aufrufen und Parameter übergeben
+        $method->invokeArgs($controller->newInstance(), $args);
     }
 }
 

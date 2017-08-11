@@ -14,7 +14,7 @@
     "dependencies": [
       "request",
       "response",
-      "routes-php"
+      "routes-file"
     ]
   },
   {
@@ -30,7 +30,7 @@
     "dependencies": []
   },
   {
-    "id": "routes-php",
+    "id": "routes-file",
     "value": "../app/routes.php",
     "type": "value"
   },
