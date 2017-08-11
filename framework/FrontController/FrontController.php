@@ -210,7 +210,7 @@ class FrontController implements IFrontController {
     /**
      * Gibt die in der URI enthaltenen Parameter zurück
      *
-     * @param $pattern
+     * @param string $pattern
      * @return array
      */
     private function getURIParameters($pattern) {
