@@ -268,6 +268,13 @@ class FrontController implements IFrontController {
         return Container::get('controller-namespace').$class;
     }
 
+    /**
+     * Ruft die Methode der Klasse mit den Parametern auf
+     *
+     * @param string $class Klassenname (mit Namespace)
+     * @param string $method Methodenname der Klasse
+     * @param array $args Parameter die an den Konstruktor der Methode übergeben werden
+     */
     private function callControllerMethodWithArgs($class, $method, $args) {
         //Controller Klassen Reflektor erzeugen
         $controller = new \ReflectionClass($class);
