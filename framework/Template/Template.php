@@ -77,7 +77,6 @@ class Template implements ITemplate {
      * @throws \Exception TemplateNotFound
      */
     public function render() {
-        echo $this->file;
         if(!file_exists($this->file)) {
             throw new \Exception("Template file '{$this->file}' missing.");
         }
@@ -102,7 +101,6 @@ class Template implements ITemplate {
      * Erzeugt ein Eltern-Template mit den Variablen des Kind-Templates plus dem Content des generierten Kind-Templates
      *
      * @param $file
-     * @return Template
      */
     public function extend($file) {
         //Variablen in Eltern-Template übernehmen
@@ -110,14 +108,30 @@ class Template implements ITemplate {
         $this->setFile($file);
     }
 
+    /**
+     * Lädt eine Datei in das Template
+     *
+     * @param $file
+     */
     public function inc($file) {
         require($this->resolveFilePath($file));
     }
 
+    /**
+     * Ändert die Template Datei
+     *
+     * @param $file
+     */
     private function setFile($file) {
         $this->file = $this->resolveFilePath($file);
     }
 
+    /**
+     * Gibt den Pfad zu einer Datei mit dem Views Verzeichnis zurück
+     *
+     * @param $file
+     * @return string
+     */
     private function resolveFilePath($file) {
         return Container::get('view-directory') . $file;
     }

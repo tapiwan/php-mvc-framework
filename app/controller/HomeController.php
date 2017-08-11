@@ -8,6 +8,12 @@ use bitbetrieb\CMS\Template\Template as Template;
 use bitbetrieb\CMS\Model\User as User;
 
 class HomeController extends Controller {
+    /**
+     * HomeController@index - Lade die Startseite
+     *
+     * @param IRequest $request
+     * @param IResponse $response
+     */
     public function index(IRequest $request, IResponse $response) {
         $tpl = new Template('test.php', [
             "title" => "Testtitel",
@@ -21,7 +27,18 @@ class HomeController extends Controller {
         $response->send();
     }
 
+    /**
+     * HomeController@test - Testroute
+     *
+     * @param IRequest $request
+     * @param IResponse $response
+     * @param $userName
+     * @param $orderId
+     */
     public function test(IRequest $request, IResponse $response, $userName, $orderId) {
+
+        $user = new User();
+
         $tpl = new Template('test.php', [
             "title" => "User Orders",
            "name" => $userName,

@@ -61,5 +61,13 @@
     "id": "view-directory",
     "value": "../resources/views/",
     "type": "value"
+  },
+  {
+    "id": "database-handler",
+    "class": "bitbetrieb\\CMS\\DatabaseHandler\\MySqlDatabaseHandler",
+    "type": "singleton",
+    "dependencies": [
+      "config"
+    ]
   }
 ]
