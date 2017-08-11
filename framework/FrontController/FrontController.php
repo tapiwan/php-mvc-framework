@@ -198,7 +198,10 @@ class FrontController implements IFrontController {
         $params[] = $this->request;
         $params[] = $this->response;
 
-        array_push($params, $this->getURIParameters($route['pattern']));
+        $uriParams = $this->getURIParameters($route['pattern']);
+        foreach($uriParams as $param) {
+            $params[] = $param;
+        }
 
         return $params;
     }
