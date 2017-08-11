@@ -15,7 +15,7 @@ class HomeController extends Controller {
             "orderId" => "Blubbeeel"
         ]);
 
-        $tpl = $tpl->extend('index.php');
+        $tpl->extend('index.php');
 
         $response->setBody($tpl->render());
         $response->send();
@@ -28,7 +28,7 @@ class HomeController extends Controller {
            "orderId" => $orderId
         ]);
 
-        $tpl = $tpl->extend('index.php');
+        $tpl->extend('index.php');
 
         $response->setBody($tpl->render());
         $response->send();
