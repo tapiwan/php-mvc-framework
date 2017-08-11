@@ -2,16 +2,24 @@
 
 namespace bitbetrieb\CMS\Controller;
 
-class HomeController extends Controller {
-    public function index($request, $response) {
-        print_r(func_get_args());
-    }
+use bitbetrieb\CMS\HTTP\IRequest as IRequest;
+use bitbetrieb\CMS\HTTP\IResponse as IResponse;
+use bitbetrieb\CMS\Template\Template as Template;
 
-    public function test($request, $response, $name, $orderId) {
-        print_r($request);
-        print_r($response);
-        echo $name;
-        echo $orderId;
+class HomeController extends Controller {
+    public function index(IRequest $request, IResponse $response) {
+        $tpl = new Template('test.php', [
+            "name" => "Tapiwan",
+            "blub" => "Blubbeeel",
+            "friends" => ["Test", "Blub", "Wtf"]
+        ]);
+
+        $layout = new Template('index.php', [
+           'content' => $tpl->render()
+        ]);
+
+        $response->setBody($layout->render());
+        $response->send();
     }
 }
 

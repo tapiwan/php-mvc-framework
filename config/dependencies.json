@@ -56,5 +56,10 @@
     "id": "models-namespace",
     "value": "\\bitbetrieb\\CMS\\Model\\",
     "type": "value"
+  },
+  {
+    "id": "view-directory",
+    "value": "../resources/views/",
+    "type": "value"
   }
 ]
