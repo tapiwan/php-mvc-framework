@@ -2,6 +2,10 @@
 
 namespace bitbetrieb\CMS\Config;
 
+/**
+ * Class Config
+ * @package bitbetrieb\CMS\Config
+ */
 class Config implements IConfig {
     /**
      * Config Map

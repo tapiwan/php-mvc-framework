@@ -2,6 +2,10 @@
 
 namespace bitbetrieb\CMS\PathFinder;
 
+/**
+ * Class PathFinder
+ * @package bitbetrieb\CMS\PathFinder
+ */
 class PathFinder {
     /**
      * Get the document root of the application

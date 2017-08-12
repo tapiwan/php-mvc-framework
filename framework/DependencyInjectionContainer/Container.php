@@ -2,6 +2,10 @@
 
 namespace bitbetrieb\CMS\DependencyInjectionContainer;
 
+/**
+ * Class Container
+ * @package bitbetrieb\CMS\DependencyInjectionContainer
+ */
 class Container implements IContainer {
     /**
      * Map mit allen Werten und Services
@@ -11,9 +15,53 @@ class Container implements IContainer {
     private static $map = [];
 
     /**
-     * JSON Datei mit allen Werten und Services
+     * Wert zur Map hinzufügen
      *
-     * @param string $json
+     * @param string $id Der Identifier als ein String, frei wählbar
+     * @param mixed $value Der Wert, kann von jeglichem Datentyp sein
+     */
+    public static function addValue($id, $value) {
+        self::$map[$id] = (object)[
+            "value" => $value,
+            "type" => "value"
+        ];
+    }
+
+    /**
+     * Singleton zur Map hinzufügen
+     *
+     * @param string $id Der Identifier als ein String, frei wählbar
+     * @param string $value Der Klassenname des Singletons mit Namespace
+     * @param array|null $dependencies Array mit Identifiern anderer Dependencies. Kann null oder ein leeres Array sein.
+     */
+    public static function addSingleton($id, $value, $dependencies = null) {
+        self::$map[$id] = (object)[
+            "value" => $value,
+            "type" => "singleton",
+            "dependencies" => $dependencies,
+            "instance" => null
+        ];
+    }
+
+    /**
+     * Class zur Map hinzufügen
+     *
+     * @param string $id Der Identifier als ein String, frei wählbar
+     * @param string $value Der Klassenname mit Namespace
+     * @param array|null $dependencies Array mit Identifiern anderer Dependencies. Kann null oder ein leeres Array sein.
+     */
+    public static function addClass($id, $value, $dependencies = null) {
+        self::$map[$id] = (object)[
+            "value" => $value,
+            "type" => "class",
+            "dependencies" => $dependencies
+        ];
+    }
+
+    /**
+     * JSON Datei auslesen und Dependencies zur Map hinzufügen
+     *
+     * @param string $json JSON String der eingelesen wird
      */
     public static function initializeViaJSON($json) {
         # Read file
@@ -34,54 +82,11 @@ class Container implements IContainer {
     }
 
     /**
-     * Wert zur Map hinzufügen
+     * Value, Singleton oder Class anhand von Identifier zurückgeben.
+     * In diesem Zuge auch die Dependencies rekursiv auflösen.
      *
-     * @param $id
-     * @param $value
-     */
-    public static function addValue($id, $value) {
-        self::$map[$id] = (object)[
-            "value" => $value,
-            "type" => "value"
-        ];
-    }
-
-    /**
-     * Singleton zur Map hinzufügen
-     *
-     * @param $id
-     * @param $value
-     * @param null $dependencies
-     */
-    public static function addSingleton($id, $value, $dependencies = null) {
-        self::$map[$id] = (object)[
-            "value" => $value,
-            "type" => "singleton",
-            "dependencies" => $dependencies,
-            "instance" => null
-        ];
-    }
-
-    /**
-     * Class zur Map hinzufügen
-     *
-     * @param $id
-     * @param $value
-     * @param null $dependencies
-     */
-    public static function addClass($id, $value, $dependencies = null) {
-        self::$map[$id] = (object)[
-            "value" => $value,
-            "type" => "class",
-            "dependencies" => $dependencies
-        ];
-    }
-
-    /**
-     * Wert, Singleton oder Class nach $id zurückgeben
-     *
-     * @param $id
-     * @return object
+     * @param string $id Der Identifier
+     * @return object Enthält entweder den Wert (beim Typ 'values)', eine neue Instanz der Klasse (beim Typ 'class') oder die Singleton Instanz (beim Typ 'singleton') der Dependency
      * @throws \Exception
      */
     public static function get($id) {

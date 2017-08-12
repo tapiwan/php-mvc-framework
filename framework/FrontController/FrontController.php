@@ -2,11 +2,14 @@
 
 namespace bitbetrieb\CMS\FrontController;
 
-use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
 use bitbetrieb\CMS\HTTP\IResponse as IResponse;
 use bitbetrieb\CMS\HTTP\IRequest as IRequest;
 use bitbetrieb\CMS\FrontController\Route as Route;
 
+/**
+ * Class FrontController
+ * @package bitbetrieb\CMS\FrontController
+ */
 class FrontController implements IFrontController {
     /**
      * Request Object
@@ -23,7 +26,7 @@ class FrontController implements IFrontController {
     private $response;
 
     /**
-     * Route Sammlung
+     * Routen Array
      *
      * @var array
      */
@@ -40,6 +43,7 @@ class FrontController implements IFrontController {
      * FrontController constructor.
      *
      * @param IRequest $request
+     * @param IResponse $response
      * @param $routesFile
      */
     public function __construct(IRequest $request, IResponse $response, $routesFile) {
@@ -51,8 +55,8 @@ class FrontController implements IFrontController {
     /**
      * GET Route hinzufügen
      *
-     * @param string $route
-     * @param string $callable
+     * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
+     * @param string $callable Zeichenkette in Form von "controller@funktion"
      */
     public function get($route, $callable) {
         $this->addRoute("GET", $route, $callable);
@@ -61,8 +65,8 @@ class FrontController implements IFrontController {
     /**
      * POST Route hinzufügen
      *
-     * @param string $route
-     * @param string $callable
+     * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
+     * @param string $callable Zeichenkette in Form von "controller@funktion"
      */
     public function post($route, $callable) {
         $this->addRoute("POST", $route, $callable);
@@ -71,8 +75,8 @@ class FrontController implements IFrontController {
     /**
      * PUT Route hinzufügen
      *
-     * @param string $route
-     * @param string $callable
+     * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
+     * @param string $callable Zeichenkette in Form von "controller@funktion"
      */
     public function put($route, $callable) {
         $this->addRoute("PUT", $route, $callable);
@@ -81,8 +85,8 @@ class FrontController implements IFrontController {
     /**
      * DELETE Route hinzufügen
      *
-     * @param string $route
-     * @param string $callable
+     * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
+     * @param string $callable Zeichenkette in Form von "controller@funktion"
      */
     public function delete($route, $callable) {
         $this->addRoute("DELETE", $route, $callable);
@@ -91,16 +95,16 @@ class FrontController implements IFrontController {
     /**
      * Route hinzufügen
      *
-     * @param string $httpMethod
-     * @param string $route
-     * @param string $callable
+     * @param string $httpMethod HTTP Methode
+     * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
+     * @param string $callable Zeichenkette in Form von "controller@funktion"
      */
     public function addRoute($httpMethod, $route, $callable) {
         $this->routes[] = new Route($route, $httpMethod, $callable);
     }
 
     /**
-     * Setzt Controller und Funktion für Fehlerfälle
+     * Setzt Callable für Fehlerfälle
      *
      * @param string $callable Zeichenkette in Form von "controller@funktion"
      */
@@ -109,8 +113,9 @@ class FrontController implements IFrontController {
     }
 
     /**
-     * Request and Controller delegieren wenn Route existiert.
-     * Wenn Route nicht existiert dann wird der Error Handler aufgerufen
+     * Passende Route ausfindig machen.
+     * Wenn Route existiert diese ausführen und Request und Response übergeben
+     * Wenn Route nicht existiert dann wird der Error Handler aufgerufen, ebenfalls mit Request und Response
      */
     public function execute() {
         $route = $this->findRoute();
@@ -119,18 +124,18 @@ class FrontController implements IFrontController {
     }
 
     /**
-     * Lädt die Web Routen
+     * Lädt die Routen
      *
-     * @param $file
+     * @param string $file Pfad zur Routen Datei
      */
     private function loadRoutes($file) {
         require($file);
     }
 
     /**
-     * Sucht die vom Nutzer aufgerufenen Route. Wird diese nicht gefunden wird der ErrorHandler zurückgegeben
+     * Sucht die vom Nutzer aufgerufenen Route. Wird diese nicht gefunden wird der Error Handler zurückgegeben
      *
-     * @return mixed|string
+     * @return object
      */
     private function findRoute() {
         $result = $this->errorHandler;

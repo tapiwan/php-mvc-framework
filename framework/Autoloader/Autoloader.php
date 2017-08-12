@@ -2,157 +2,157 @@
 
 namespace bitbetrieb\CMS\Autoloader;
 
+/**
+ * Class Autoloader
+ * @package bitbetrieb\CMS\Autoloader
+ */
 class Autoloader {
     /**
-     * An associative array where the key is a namespace prefix and the value
-     * is an array of base directories for classes in that namespace.
+     * Ein assoziatives Array, bei dem der Schlüssel der Namespace Prefix und der Wert
+     * ein Array mit den dazugehörigen Quellordnern für die Klassen des Namespaces ist.
      *
      * @var array
      */
-    protected static $prefixes = array();
+    private $prefixes = [];
 
     /**
-     * Read JSON file and add namespaces and base directories to autoloader
-     *
-     * @param  string $pathToFile Path to file, going out from app root
-     * @return void
-     */
-    public static function initializeViaJSON($json) {
-      # Read file
-      $autoloadJSON = json_decode($json);
-
-      # Add namespaces and base directories from JSON to autoloader
-      foreach($autoloadJSON as $prefix => $base_dir) {
-         self::addNamespace($prefix, realpath('../'.$base_dir));
-      }
-
-      self::register();
-   }
-
-    /**
-     * Register loader with SPL autoloader stack.
+     * Den Autoloader im SPL Autoloader Stack registrieren
      *
      * @return void
      */
-    public static function register()
-    {
-        spl_autoload_register(array(self, 'loadClass'));
+    public function register() {
+        spl_autoload_register([$this, 'loadClass']);
     }
 
     /**
-     * Adds a base directory for a namespace prefix.
+     * Fügt einen Quellordner zu einem Namespace Prefix hinzu
      *
-     * @param string $prefix The namespace prefix.
-     * @param string $base_dir A base directory for class files in the
-     * namespace.
-     * @param bool $prepend If true, prepend the base directory to the stack
-     * instead of appending it; this causes it to be searched first rather
-     * than last.
+     * @param string $prefix Der Namespace Prefix
+     * @param string $base_dir Ein Quellordner für die Klassen innerhalb des Namespaces
+     * @param bool $prepend Wenn true, fügt den Quellordner vorne an die Liste der Quellordner an.
+     * Somit wird er früher durchsucht. Wenn false wird der Quellordner hinten angefügt
+     *
      * @return void
      */
-    public static function addNamespace($prefix, $base_dir, $prepend = false)
-    {
-        // normalize namespace prefix
+    public function addNamespace($prefix, $base_dir, $prepend = false) {
+        //Namespace Prefix normalisieren
         $prefix = trim($prefix, '\\') . '\\';
 
-        // normalize the base directory with a trailing separator
+        //Quellordner normalisieren mit einem abschließenden Slash
         $base_dir = rtrim($base_dir, DIRECTORY_SEPARATOR) . '/';
 
-        // initialize the namespace prefix array
-        if (isset(self::$prefixes[$prefix]) === false) {
-            self::$prefixes[$prefix] = array();
+        //Namespace Array initialisieren
+        if (isset($this->prefixes[$prefix]) === false) {
+            $this->prefixes[$prefix] = [];
         }
 
-        // retain the base directory for the namespace prefix
-        if ($prepend) {
-            array_unshift(self::$prefixes[$prefix], $base_dir);
+        //Füge Quellordner vorne oder hinten an den Liste der Quellordner an
+        if($prepend) {
+            array_unshift($this->prefixes[$prefix], $base_dir);
         } else {
-            array_push(self::$prefixes[$prefix], $base_dir);
+            array_push($this->prefixes[$prefix], $base_dir);
         }
     }
 
     /**
-     * Loads the class file for a given class name.
+     * Lies JSON Zeichenkette ein und füge die enthaltenen Namespaces mit zugehörigen Quellordner dem Autoloader hinzu
      *
-     * @param string $class The fully-qualified class name.
-     * @return mixed The mapped file name on success, or boolean false on
-     * failure.
+     * @param string $json JSON Zeichenkette
+     *
+     * @return void
      */
-    public static function loadClass($class)
-    {
-        // the current namespace prefix
+    public function initializeViaJSON($json) {
+        //JSON Zeichenkette decodieren
+        $autoloadJSON = json_decode($json, true);
+
+        //Namespace Prefix mit Quellordnern hinzufügen
+        foreach($autoloadJSON as $namespacePrefix => $baseDirectories) {
+            foreach($baseDirectories as $baseDirectory) {
+                $this->addNamespace($namespacePrefix, realpath('../' . $baseDirectory));
+            }
+        }
+
+        $this->register();
+    }
+
+    /**
+     * Lädt die Datei einer Klasse anhand ihres Klassennamens mit Namespace
+     *
+     * @param string $class Der Klassenname mit Namespace
+     *
+     * @return mixed Enthält bei Erfolg die gefundene Datei, bei Fehler false
+     */
+    public function loadClass($class) {
+        //Der Namespace Prefix
         $prefix = $class;
 
-        // work backwards through the namespace names of the fully-qualified
-        // class name to find a mapped file name
-        while (false !== $pos = strrpos($prefix, '\\')) {
+        //Rückwärts durch den Prefix gehen um eine Datei zu finden
+        while(false !== $pos = strrpos($prefix, '\\')) {
 
-            // retain the trailing namespace separator in the prefix
+            //Den abschließenden Separator des Prefix erhalten
             $prefix = substr($class, 0, $pos + 1);
 
-            // the rest is the relative class name
+            //Der Rest ist der relative Klassenname
             $relative_class = substr($class, $pos + 1);
 
-            // try to load a mapped file for the prefix and relative class
-            $mapped_file = self::loadMappedFile($prefix, $relative_class);
-            if ($mapped_file) {
+            //Versuche Datei für den Namespace Prefix und den relativen Klassenname zu laden
+            $mapped_file = $this->loadMappedFile($prefix, $relative_class);
+            if($mapped_file) {
                 return $mapped_file;
             }
 
-            // remove the trailing namespace separator for the next iteration
-            // of strrpos()
+            //Entferne abschließenden Separator des Prefix für nächste Iteration
             $prefix = rtrim($prefix, '\\');
         }
 
-        // never found a mapped file
+        //Es konnte keine Datei gefunden werden
         return false;
     }
 
     /**
-     * Load the mapped file for a namespace prefix and relative class.
+     * Die gefundene Datei einer Klasse anhand von Namespace Prefix und relativem Klassenname laden
      *
-     * @param string $prefix The namespace prefix.
-     * @param string $relative_class The relative class name.
-     * @return mixed Boolean false if no mapped file can be loaded, or the
-     * name of the mapped file that was loaded.
+     * @param string $prefix Der Namespace Prefix
+     * @param string $relative_class Der relative Klassenname
+     *
+     * @return mixed boolean Enthält false wenn keine Datei geladen werden konnte.
+     * Bei Erfolg ist der Name der geladenen Datei enthalten
      */
-    protected static function loadMappedFile($prefix, $relative_class)
-    {
-        // are there any base directories for this namespace prefix?
-        if (isset(self::$prefixes[$prefix]) === false) {
+    protected function loadMappedFile($prefix, $relative_class) {
+        //Überprüfen ob der Namespace Prefix registriert ist
+        if(isset($this->prefixes[$prefix]) === false) {
             return false;
         }
 
-        // look through base directories for this namespace prefix
-        foreach (self::$prefixes[$prefix] as $base_dir) {
+        //Quellordner des Namespace Prefix durchschauen
+        foreach($this->prefixes[$prefix] as $base_dir) {
 
-            // replace the namespace prefix with the base directory,
-            // replace namespace separators with directory separators
-            // in the relative class name, append with .php
+            //Namespace Prefix mit Quellordner-Pfad ersetzen
+            //Namespace Separatoren mit Pfad-Separatoren ersetzen
+            //.php an den relativen Klassennamen anhängen
             $file = $base_dir
-                  . str_replace('\\', '/', $relative_class)
-                  . '.php';
+                . str_replace('\\', '/', $relative_class)
+                . '.php';
 
-            // if the mapped file exists, require it
-            if (self::requireFile($file)) {
-                // yes, we're done
+            //Wenn die Klassendatei existiert, lade sie...
+            if($this->requireFile($file)) {
                 return $file;
             }
         }
 
-        // never found it
+        //Es konnte keine Klassendatei gefunden werden
         return false;
     }
 
     /**
-     * If a file exists, require it from the file system.
+     * Wenn eine Datei existiert, lade sie vom Dateisystem
      *
-     * @param string $file The file to require.
-     * @return bool True if the file exists, false if not.
+     * @param string $file Die zu ladende Datei
+     *
+     * @return bool Enthält true wenn die Datei existiert und false wenn nicht
      */
-    protected static function requireFile($file)
-    {
-        if (file_exists($file)) {
+    protected function requireFile($file) {
+        if(file_exists($file)) {
             require $file;
             return true;
         }

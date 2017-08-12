@@ -2,6 +2,10 @@
 
 namespace bitbetrieb\CMS\HTTP;
 
+/**
+ * Interface IResponse
+ * @package bitbetrieb\CMS\HTTP
+ */
 interface IResponse {
     public function setStatus($code);
     public function getStatus();

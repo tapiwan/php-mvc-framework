@@ -2,6 +2,10 @@
 
 namespace bitbetrieb\CMS\Template;
 
+/**
+ * Interface ITemplate
+ * @package bitbetrieb\CMS\Template
+ */
 interface ITemplate {
     public function __construct($file, $vars = []);
     public function __set($key, $value);

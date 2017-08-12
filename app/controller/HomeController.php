@@ -7,28 +7,23 @@ use bitbetrieb\CMS\HTTP\IResponse as IResponse;
 use bitbetrieb\CMS\Template\Template as Template;
 use bitbetrieb\CMS\Model\User as User;
 
+/**
+ * Class HomeController
+ * @package bitbetrieb\CMS\Controller
+ */
 class HomeController extends Controller {
     /**
-     * HomeController@index - Lade die Startseite
+     * index - Lade die Startseite
      *
      * @param IRequest $request
      * @param IResponse $response
      */
     public function index(IRequest $request, IResponse $response) {
-        $tpl = new Template('test.php', [
-            "title" => "Testtitel",
-            "name" => "Tapiwan",
-            "orderId" => "Blubbeeel"
-        ]);
-
-        $tpl->extend('index.php');
-
-        $response->setBody($tpl->render());
-        $response->send();
+        echo "index";
     }
 
     /**
-     * HomeController@test - Testroute
+     * test - Testroute
      *
      * @param IRequest $request
      * @param IResponse $response
@@ -37,9 +32,11 @@ class HomeController extends Controller {
      */
     public function test(IRequest $request, IResponse $response, $userName, $orderId) {
 
-        $user = new User();
+        $user = User::find();
 
-        $tpl = new Template('test.php', [
+        print_r($user);
+
+        /*$tpl = new Template('test.php', [
             "title" => "User Orders",
            "name" => $userName,
            "orderId" => $orderId
@@ -48,7 +45,7 @@ class HomeController extends Controller {
         $tpl->extend('index.php');
 
         $response->setBody($tpl->render());
-        $response->send();
+        $response->send();*/
     }
 }
 

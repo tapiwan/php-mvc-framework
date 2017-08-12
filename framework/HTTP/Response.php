@@ -2,6 +2,10 @@
 
 namespace bitbetrieb\CMS\HTTP;
 
+/**
+ * Class Response
+ * @package bitbetrieb\CMS\HTTP
+ */
 class Response implements IResponse {
     /**
      * Status Code des Response

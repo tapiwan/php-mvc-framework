@@ -2,6 +2,10 @@
 
 namespace bitbetrieb\CMS\HTTP;
 
+/**
+ * Class Request
+ * @package bitbetrieb\CMS\HTTP
+ */
 class Request implements IRequest {
     /**
      * URI des Request

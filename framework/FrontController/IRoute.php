@@ -2,6 +2,13 @@
 
 namespace bitbetrieb\CMS\FrontController;
 
+use bitbetrieb\CMS\HTTP\IResponse as IResponse;
+use bitbetrieb\CMS\HTTP\IRequest as IRequest;
+
+/**
+ * Interface IRoute
+ * @package bitbetrieb\CMS\FrontController
+ */
 interface IRoute {
     public function __construct($routeRegex, $httpMethod, $callable);
     public function setRegex($routeRegex);
@@ -15,9 +22,9 @@ interface IRoute {
     public function getControllerClassMethodName();
     public function httpMethodsMatch($method);
     public function uriMatchesRegex($uri);
-    public function getInvocationArguments($request, $response);
+    public function getInvocationArguments(IRequest $request, IResponse $response);
     public function getURIParameters($uri);
-    public function invoke($request, $response);
+    public function invoke(IRequest $request, IResponse $response);
 }
 
 ?>

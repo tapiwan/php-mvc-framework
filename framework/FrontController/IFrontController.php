@@ -5,6 +5,10 @@ namespace bitbetrieb\CMS\FrontController;
 use bitbetrieb\CMS\HTTP\IResponse as IResponse;
 use bitbetrieb\CMS\HTTP\IRequest as IRequest;
 
+/**
+ * Interface IFrontController
+ * @package bitbetrieb\CMS\FrontController
+ */
 interface IFrontController {
     public function __construct(IRequest $request, IResponse $response, $routesFile);
     public function get($route, $callable);

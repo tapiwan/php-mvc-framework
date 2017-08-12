@@ -13,14 +13,15 @@ use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
 /**
  * AUTOLOADER
  */
+$autoloader = new Autoloader();
 $autoloadList = file_get_contents(realpath("../config/autoload.json"));
-Autoloader::initializeViaJSON($autoloadList);
+$autoloader->initializeViaJSON($autoloadList);
 
 /**
  * DEPENDENCY INJECTION CONTAINER
  */
-$dependencyList = file_get_contents(realpath("../config/dependencies.json"));
-Container::initializeViaJSON($dependencyList);
+$containerList = file_get_contents(realpath("../config/container.json"));
+Container::initializeViaJSON($containerList);
 
 /**
  * APPLICATION

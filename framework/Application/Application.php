@@ -4,6 +4,10 @@ namespace bitbetrieb\CMS\Application;
 
 use bitbetrieb\CMS\FrontController\IFrontController as IFrontController;
 
+/**
+ * Class Application
+ * @package bitbetrieb\CMS\Application
+ */
 class Application {
     /**
      * Front Controller der App
@@ -22,7 +26,7 @@ class Application {
     }
 
     /**
-     * Starte den Front Controller
+     * Starte die App
      */
     public function start() {
         $this->frontController->execute();

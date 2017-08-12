@@ -4,6 +4,10 @@ namespace bitbetrieb\CMS\Template;
 
 use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
 
+/**
+ * Class Template
+ * @package bitbetrieb\CMS\Template
+ */
 class Template implements ITemplate {
     /**
      * Pfad zur Template-Datei
