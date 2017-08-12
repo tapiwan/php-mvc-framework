@@ -3,10 +3,13 @@
 namespace bitbetrieb\CMS\Model;
 
 class User extends Model {
-    protected $fillable = [
-      'id' => 'int',
-      'name' => 'string'
-    ];
+    public function __construct($data = null) {
+        parent::__construct($data);
+
+        $this->fillable = [
+            'name'
+        ];
+    }
 }
 
 ?>

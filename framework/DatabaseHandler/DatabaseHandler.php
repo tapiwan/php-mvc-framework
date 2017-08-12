@@ -59,6 +59,10 @@ class DatabaseHandler implements IDatabaseHandler {
      * @throws \Exception Keine Verbindung zur Datenbank
      */
     public function query($query, $execution_only = false) {
+        if(is_null($query)) return false;
+
+        echo $query;
+
         $data = [];
 
         //Überprüfen ob Verbindung zur Datenbank besteht
@@ -72,6 +76,8 @@ class DatabaseHandler implements IDatabaseHandler {
         //Query war nicht erfolgreich
         if(!method_exists($stmt, 'errorCode')) return false;
         if($stmt->errorCode() !== "00000") return false;
+
+        print_r($this->connection->lastInsertId());
 
         //Überprüfen ob ResultSet zurückgegeben werden soll oder nur Information über Erfolg
         if($execution_only) {

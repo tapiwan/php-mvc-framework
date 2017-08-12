@@ -10,13 +10,6 @@ use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
  */
 abstract class Model {
     /**
-     * Klassenname des Models mit Namespace
-     *
-     * @var string
-     */
-    protected $class;
-
-    /**
      * Zum Model zugehöriger Tabellenname
      * Wird automatisch erzeugt, kann aber überschrieben werden
      *
@@ -33,13 +26,22 @@ abstract class Model {
     protected $data = [];
 
     /**
-     * Spaltenname mit Datentypen der dem Model zugehörigen Tabelle
+     * Primärschlüssel
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * Spaltennamen der dem Model zugehörigen Tabelle
      *
      * @var array
      */
-    protected $fillable = [
-        'id' => 'int'
-    ];
+    protected $fillable = [];
+
+    /**
+     * Zeitstempel
+     */
+    protected $updatedAt = 'updated_at';
+    protected $createdAt = 'created_at';
 
     /**
      * Spalten welche nicht als JSON ausgegeben werden sollen
@@ -56,30 +58,13 @@ abstract class Model {
     protected $dbh;
 
     /**
-     * Array um die Suchkriterien der get Methode zu speichern
-     *
-     * @var array
-     */
-    public static $findCriteria = [];
-
-    /**
      * Model constructor.
      */
     public function __construct($data = null) {
-        //Klassenname auslesen
-        $this->class = get_class($this);
-
-        //Standard-Tabellenname ist Klassenname ohne Namespace, kleingeschrieben mit angehängtem "s"
-        //Beispiel: bitbetrieb/CMS/Model/User -> users
-        $this->table = strtolower(array_pop(explode("\\", $this->class))) . "s";
-
-        //Hole Database Handler aus Container
+        $this->table = $this->getDefaultTableName();
         $this->dbh = Container::get('database-handler');
 
-        //Falls Daten übergeben wurden lade das Model
-        if(!is_null($data)) {
-            $this->load($data);
-        }
+        $this->load($data);
     }
 
     /**
@@ -112,195 +97,57 @@ abstract class Model {
     }
 
     /**
-     * Gibt den Tabellenname zurück
-     *
-     * @return string Tabellenname
-     */
-    public function getTable() {
-        return $this->table;
-    }
-
-    /**
-     * Gibt den Klassennamen zurück
-     */
-    public static function getClassStatic() {
-        return get_class(new static());
-    }
-
-    /**
-     * Gibt den Tabellennamen der Klasse zurück
-     */
-    public static function getTableStatic() {
-        $static = new static();
-        return $static->getTable();
-    }
-
-    /**
-     * Suchkriterium dem Model hinzufügen
-     *
-     * @param string $key Schlüssel des Kriteriums
-     * @param string $operator Vergleichsoperator
-     * @param mixed $value Wert des Kriteriums
-     */
-    public static function criteria($cmd, $key, $operator, $value) {
-        self::$findCriteria[] = (object)[
-            'cmd' => $cmd,
-            'key' => $key,
-            'operator' => $operator,
-            'value' => $value
-        ];
-    }
-
-    /**
-     * Finde Einträge des Models anhand von Kriterien
-     *
-     * @param array $criteria
-     */
-    public static function find() {
-        $result = Container::get('database-handler')->query(self::buildFindQuery());
-        $models = [];
-
-        foreach($result as $data) {
-            $reflector = new \ReflectionClass(self::getClassStatic());
-            $models[] = $reflector->newInstance($data);
-        }
-
-        if(count($models) === 1) {
-            return $models[0];
-        }
-
-        return $models;
-    }
-
-    /**
      * Speichere Model
      */
     public function save() {
-        $this->dbh->query($this->buildSaveQuery(), true);
-
-        return $this;
+        $this->dbh->query($this->buildSaveQuery());
     }
 
     /**
      * Lösche Model
      */
     public function delete() {
-        $this->dbh->query($this->buildDeleteQuery(), true);
+       $this->dbh->query($this->buildDeleteQuery());
+    }
 
-        return $this;
+    /**
+     * Konstruiere den SQL Query zum Speichern
+     */
+    private function buildSaveQuery() {
+        $sql = null;
+
+        if(isset($this->data[$this->primaryKey])) {
+            $sql = "UPDATE {$this->table} SET {$this->getDataSet()} WHERE {$this->primaryKey}={$this->data[$this->primaryKey]};";
+        }
+        else {
+            $sql = "INSERT INTO {$this->table} ({$this->getDataKeys()}) VALUES ({$this->getDataValues()});";
+        }
+
+        return $sql;
+    }
+
+    /**
+     * Konstruiere den SQL Query zum Löschen
+     */
+    private function buildDeleteQuery() {
+        $sql = null;
+
+        if(isset($this->data[$this->primaryKey])) {
+            $sql = "DELETE FROM {$this->table} WHERE {$this->primaryKey}={$this->data[$this->primaryKey]}";
+        }
+
+        return $sql;
     }
 
     /**
      * Lade Model Daten
      */
     private function load($data) {
-        foreach($data as $key => $value) {
-            if($this->modelHasKey($key)) {
-                $this->data[$key] = $value;
+        if(!is_null($data)) {
+            foreach($data as $key => $value) {
+                $this->__set($key, $value);
             }
         }
-    }
-
-    /**
-     * Konstruiere SQL Query zum Auffinden des Models anhand von Bedingungen
-     *
-     * @return string SQL Query
-     */
-    private static function buildFindQuery() {
-        return "SELECT * FROM " . self::getTableStatic() . " " . self::getFindCriteria() . ";";
-    }
-
-    /**
-     * Konstruiere SQL Query zum Speichern des Models
-     *
-     * @return string
-     */
-    private function buildSaveQuery() {
-        return "INSERT INTO {$this->getTable()} ({$this->getDataKeys()}) VALUES ({$this->getDataValues()}) ON DUPLICATE KEY UPDATE {$this->getDataKeysAndValues()};";
-    }
-
-    /**
-     * Konstruiere SQL Query zum Löschen des Models
-     *
-     * @return string
-     */
-    private function buildDeleteQuery() {
-        return "DELETE FROM {$this->getTable()} WHERE id={$this->id}";
-    }
-
-    public static function getFindCriteria() {
-        $coll = [];
-
-        if(count(self::$findCriteria) > 0) {
-            foreach(self::$findCriteria as $criterion) {
-                if(is_string($criterion->value)) {
-                    $coll[] = $criterion->cmd . " " . $criterion->key . $criterion->operator . '"' . $criterion->value . '"';
-                } else {
-                    $coll[] = $criterion->cmd . " " . $criterion->key . $criterion->operator . $criterion->value;
-                }
-            }
-        }
-
-        return implode(" ", $coll);
-    }
-
-    /**
-     * Gibt Schlüssel aller Model Daten zurück so wie sie für einen SQL String benötigt werden
-     *
-     * @return string
-     */
-    private function getDataKeys() {
-        $keys = [];
-
-        foreach($this->data as $key => $value) {
-            if($this->modelHasKey($key)) {
-                $keys[] = $key;
-            }
-        }
-
-        return implode(",", $keys);
-    }
-
-    /**
-     * Gibt Werte aller Model Daten zurück so wie sie für einen SQL String benötigt werden
-     *
-     * @return string
-     */
-    private function getDataValues() {
-        $values = [];
-
-        foreach($this->data as $key => $value) {
-            if($this->modelHasKey($key)) {
-                if(is_string($value)) {
-                    $values[] = '"' . $value . '"';
-                } else {
-                    $values[] = $value;
-                }
-            }
-        }
-
-        return implode(",", $values);
-    }
-
-    /**
-     * Gibt Werte und Schlüssel aller Model Daten zurück so wie sie für einen SQL String benötigt werden
-     *
-     * @return string
-     */
-    private function getDataKeysAndValues() {
-        $coll = [];
-
-        foreach($this->data as $key => $value) {
-            if($this->modelHasKey($key)) {
-                if(is_string($value)) {
-                    $coll[] = $key . '="' . $value . '"';
-                } else {
-                    $coll[] = $key . '=' . $value;
-                }
-            }
-        }
-
-        return implode(",", $coll);
     }
 
     /**
@@ -311,7 +158,81 @@ abstract class Model {
      * @return bool Enthält true wenn der Schlüssel existiert und false wenn nicht
      */
     private function modelHasKey($key) {
-        return isset($this->fillable[$key]);
+        $hasKey = false;
+
+        if(in_array($key, $this->fillable) || $key === $this->primaryKey || $key === $this->createdAt || $key === $this->updatedAt) {
+            $hasKey = true;
+        }
+
+        return $hasKey;
+    }
+
+    private function modelHasFillable($key) {
+        return in_array($key, $this->fillable);
+    }
+
+    /**
+     * Gibt den Standard Tabellennamen zurückgeben
+     *
+     * @return string
+     */
+    private function getDefaultTableName() {
+        return strtolower(array_pop(explode("\\", get_class($this)))) . "s";
+    }
+
+    /**
+     * Gibt DataSet für einen SQL Query wieder
+     */
+    private function getDataSet() {
+        $set = [];
+
+        foreach($this->data as $key => $value) {
+            if($this->modelHasFillable($key)) {
+                $set[] = "$key={$this->quoteIfString($value)}";
+            }
+        }
+
+        return implode(',', $set);
+    }
+
+    /**
+     * Gibt DataKeys für einen SQL Query wieder
+     */
+    private function getDataKeys() {
+        $set = [];
+
+        foreach($this->data as $key => $value) {
+            if($this->modelHasFillable($key)) {
+                $set[] = $key;
+            }
+        }
+
+        return implode(',', $set);
+    }
+
+    /**
+     * Gibt DataValues für einen SQL Query wieder
+     */
+    private function getDataValues() {
+        $set = [];
+
+        foreach($this->data as $key => $value) {
+            if($this->modelHasFillable($key)) {
+                $set[] = $this->quoteIfString($value);
+            }
+        }
+
+        return implode(',', $set);
+    }
+
+    /**
+     * Quote Parameter if it's a String
+     *
+     * @param $value
+     * @return string
+     */
+    private function quoteIfString($value) {
+        return is_string($value) ? "'".$value."'" : $value;
     }
 }
 

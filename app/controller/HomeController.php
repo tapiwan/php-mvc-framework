@@ -19,7 +19,7 @@ class HomeController extends Controller {
      * @param IResponse $response
      */
     public function index(IRequest $request, IResponse $response) {
-        echo "index";
+        echo "Index";
     }
 
     /**
@@ -31,21 +31,12 @@ class HomeController extends Controller {
      * @param $orderId
      */
     public function test(IRequest $request, IResponse $response, $userName, $orderId) {
+        $user = new User();
 
-        $user = User::find();
+        $user->id = 35;
+        $user->name = 'Test';
 
-        print_r($user);
-
-        /*$tpl = new Template('test.php', [
-            "title" => "User Orders",
-           "name" => $userName,
-           "orderId" => $orderId
-        ]);
-
-        $tpl->extend('index.php');
-
-        $response->setBody($tpl->render());
-        $response->send();*/
+        $user->save();
     }
 }
 
