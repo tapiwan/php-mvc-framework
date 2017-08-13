@@ -8,7 +8,7 @@ namespace bitbetrieb\CMS\DatabaseHandler;
  */
 interface IDatabaseHandler {
     public function connect();
-    public function query($query, $execution_only = false);
+    public function query(IQueryObject $query);
 }
 
 ?>

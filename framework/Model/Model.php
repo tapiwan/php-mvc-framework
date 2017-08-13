@@ -3,6 +3,7 @@
 namespace bitbetrieb\CMS\Model;
 
 use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
+use bitbetrieb\CMS\DatabaseHandler\QueryObject as QueryObject;
 
 /**
  * Class Model
@@ -38,12 +39,6 @@ abstract class Model {
     protected $fillable = [];
 
     /**
-     * Zeitstempel
-     */
-    protected $updatedAt = 'updated_at';
-    protected $createdAt = 'created_at';
-
-    /**
      * Spalten welche nicht als JSON ausgegeben werden sollen
      *
      * @var array
@@ -64,7 +59,7 @@ abstract class Model {
         $this->table = $this->getDefaultTableName();
         $this->dbh = Container::get('database-handler');
 
-        $this->load($data);
+        $this->fill($data);
     }
 
     /**
@@ -97,6 +92,48 @@ abstract class Model {
     }
 
     /**
+     * Suche Model
+     */
+    public static function find() {
+        $query = new QueryObject();
+        $static = new static();
+        $criteria = func_get_args();
+        $return = null;
+
+        $query->selectFrom('*', $static->table);
+
+        foreach($criteria as $criterion) {
+            if($criterion[0] === 'where') {
+                $query->where($criterion[1], $criterion[2], $criterion[3]);
+            }
+            else if($criterion[0] === 'and') {
+                $query->_and($criterion[1], $criterion[2], $criterion[3]);
+            }
+            else if($criterion[0] === 'or') {
+                $query->_or($criterion[1], $criterion[2], $criterion[3]);
+            }
+        }
+
+        $result = Container::get('database-handler')->query($query);
+
+        if(count($result) === 1) {
+            $return = $static->fill($result);
+        }
+        else if(count($result) > 1) {
+            $return = [];
+
+            foreach($result as $model) {
+                $return[] = (new static())->fill($model);
+            }
+        }
+        else {
+            $return = false;
+        }
+
+        return $return;
+    }
+
+    /**
      * Speichere Model
      */
     public function save() {
@@ -114,40 +151,44 @@ abstract class Model {
      * Konstruiere den SQL Query zum Speichern
      */
     private function buildSaveQuery() {
-        $sql = null;
+        $query = new QueryObject();
 
         if(isset($this->data[$this->primaryKey])) {
-            $sql = "UPDATE {$this->table} SET {$this->getDataSet()} WHERE {$this->primaryKey}={$this->data[$this->primaryKey]};";
+            $query->update($this->table, $this->getData())->where($this->primaryKey, '=', $this->getPrimaryKeyValue());
         }
         else {
-            $sql = "INSERT INTO {$this->table} ({$this->getDataKeys()}) VALUES ({$this->getDataValues()});";
+            $query->insertInto($this->table, $this->getData());
         }
 
-        return $sql;
+        return $query;
     }
 
     /**
      * Konstruiere den SQL Query zum Löschen
      */
     private function buildDeleteQuery() {
-        $sql = null;
+        $query = new QueryObject();
 
         if(isset($this->data[$this->primaryKey])) {
-            $sql = "DELETE FROM {$this->table} WHERE {$this->primaryKey}={$this->data[$this->primaryKey]}";
+            $query->deleteFrom($this->table)->where($this->primaryKey, '=', $this->getPrimaryKeyValue());
         }
 
-        return $sql;
+        return $query;
     }
 
     /**
      * Lade Model Daten
      */
-    private function load($data) {
-        if(!is_null($data)) {
-            foreach($data as $key => $value) {
-                $this->__set($key, $value);
+    private function fill($model) {
+        if(!is_null($model)) {
+            foreach($model as $data) {
+                foreach($data as $key => $value) {
+                    $this->__set($key, $value);
+                }
             }
         }
+
+        return $this;
     }
 
     /**
@@ -160,15 +201,11 @@ abstract class Model {
     private function modelHasKey($key) {
         $hasKey = false;
 
-        if(in_array($key, $this->fillable) || $key === $this->primaryKey || $key === $this->createdAt || $key === $this->updatedAt) {
+        if(in_array($key, $this->fillable) || $key === $this->primaryKey) {
             $hasKey = true;
         }
 
         return $hasKey;
-    }
-
-    private function modelHasFillable($key) {
-        return in_array($key, $this->fillable);
     }
 
     /**
@@ -181,58 +218,33 @@ abstract class Model {
     }
 
     /**
-     * Gibt DataSet für einen SQL Query wieder
-     */
-    private function getDataSet() {
-        $set = [];
-
-        foreach($this->data as $key => $value) {
-            if($this->modelHasFillable($key)) {
-                $set[] = "$key={$this->quoteIfString($value)}";
-            }
-        }
-
-        return implode(',', $set);
-    }
-
-    /**
-     * Gibt DataKeys für einen SQL Query wieder
-     */
-    private function getDataKeys() {
-        $set = [];
-
-        foreach($this->data as $key => $value) {
-            if($this->modelHasFillable($key)) {
-                $set[] = $key;
-            }
-        }
-
-        return implode(',', $set);
-    }
-
-    /**
-     * Gibt DataValues für einen SQL Query wieder
-     */
-    private function getDataValues() {
-        $set = [];
-
-        foreach($this->data as $key => $value) {
-            if($this->modelHasFillable($key)) {
-                $set[] = $this->quoteIfString($value);
-            }
-        }
-
-        return implode(',', $set);
-    }
-
-    /**
-     * Quote Parameter if it's a String
+     * Gibt Data zurück
      *
-     * @param $value
-     * @return string
+     * @param bool $skipPrimaryKey Entscheidet ob der Primärschlüssel übersprungen werden soll
+     *
+     * @return array Assoziatives Array mit den Daten des Models
      */
-    private function quoteIfString($value) {
-        return is_string($value) ? "'".$value."'" : $value;
+    private function getData($skipPrimaryKey = true) {
+        $data = [];
+
+        foreach($this->data as $key => $value) {
+            if($skipPrimaryKey && $key == $this->primaryKey) {
+                    continue;
+            }
+
+            $data[$key] = $value;
+        }
+
+        return $data;
+    }
+
+    /**
+     * Gibt den Wert des Primary Keys zurück
+     *
+     * @return mixed
+     */
+    private function getPrimaryKeyValue() {
+        return $this->data[$this->primaryKey];
     }
 }
 

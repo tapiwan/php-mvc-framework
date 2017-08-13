@@ -12,9 +12,9 @@ class DatabaseHandler implements IDatabaseHandler {
     /**
      * Konfigurationsobjekt
      *
-     * @var IConfig
+     * @var IConfig|null
      */
-    private $config;
+    private $config = null;
 
     /**
      * Datenbankverbindung
@@ -23,6 +23,17 @@ class DatabaseHandler implements IDatabaseHandler {
      */
     private $connection = null;
 
+    /**
+     * Letzte Statement nach einem Query
+     *
+     * @var \PDOStatement|null
+     */
+    private $statement = null;
+
+    /**
+     * DatabaseHandler constructor.
+     * @param IConfig $config
+     */
     public function __construct(IConfig $config) {
         $this->config = $config;
         $this->connect();
@@ -34,16 +45,14 @@ class DatabaseHandler implements IDatabaseHandler {
      * @throws \Exception Keine Konfiguration vorhanden. Daten der Verbindung können nicht gelesen werden.
      */
     public function connect() {
-        if(is_null($this->config)) {
-            throw new \Exception("Config missing, can't connect to database.");
-        }
+        $this->checkConfig();
 
         $user = $this->config->get('db-user');
         $host = $this->config->get('db-host');
         $pass = $this->config->get('db-pass');
         $name = $this->config->get('db-name');
 
-       $this->connection = new \PDO("mysql:dbname=$name;host=$host", $user, $pass);
+        $this->connection = new \PDO("mysql:dbname=$name;host=$host", $user, $pass);
     }
 
     /**
@@ -55,42 +64,61 @@ class DatabaseHandler implements IDatabaseHandler {
      *
      * @return array|boolean Assoziatives Array mit Schlüssel-Wert Paaren. False wenn Query nicht erfolgreich war. True
      * wenn Query erfolgreich war aber die $execution_only Flag benutzt wurde
+     */
+    public function query(IQueryObject $query) {
+        $result = [];
+
+        $this->checkConnection();
+
+        $this->statement = $this->connection->query($query->assemble());
+
+        if($this->checkStatement()) {
+            foreach($this->getQueryResult() as $item) {
+                $result[] = $item;
+            };
+
+            if(count($result) === 0) {
+                $result = true;
+            }
+        }
+        else {
+            $result = false;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Überprüfen ob die Konfiguration geladen wurde
+     *
+     * @throws \Exception Keine Konfig
+     */
+    private function checkConfig() {
+        if(is_null($this->config)) {
+            throw new \Exception("Config missing, can't connect to database.");
+        }
+    }
+
+    /**
+     * Überprüfen ob eine Verbindung zur Datenbank besteht
      *
      * @throws \Exception Keine Verbindung zur Datenbank
      */
-    public function query($query, $execution_only = false) {
-        if(is_null($query)) return false;
-
-        echo $query;
-
-        $data = [];
-
-        //Überprüfen ob Verbindung zur Datenbank besteht
+    private function checkConnection() {
         if(is_null($this->connection)) {
             throw new \Exception("Can't send query, no connection to database established.");
         }
+    }
 
-        //Query ausführen
-        $stmt = $this->connection->query($query);
+    private function checkStatement() {
+        if(!method_exists($this->statement, 'errorCode')) return false;
+        if($this->statement->errorCode() !== "00000") return false;
 
-        //Query war nicht erfolgreich
-        if(!method_exists($stmt, 'errorCode')) return false;
-        if($stmt->errorCode() !== "00000") return false;
+        return true;
+    }
 
-        print_r($this->connection->lastInsertId());
-
-        //Überprüfen ob ResultSet zurückgegeben werden soll oder nur Information über Erfolg
-        if($execution_only) {
-            $data = true;
-        }
-        else {
-            //Befülle DataSet;
-            foreach($stmt->fetchAll(\PDO::FETCH_ASSOC) as $result) {
-                $data[] = $result;
-            };
-        }
-
-        return $data;
+    private function getQueryResult() {
+        return $this->statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 }
 
