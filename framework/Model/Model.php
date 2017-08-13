@@ -41,6 +41,14 @@ abstract class Model {
     protected $fillable = [];
 
     /**
+     * Zeitstempel
+     *
+     * @var string
+     */
+    protected $createdAt = 'created_at';
+    protected $updatedAt = 'updated_at';
+
+    /**
      * Spalten welche nicht als JSON ausgegeben werden sollen
      *
      * @var array
@@ -60,6 +68,8 @@ abstract class Model {
     public function __construct($data = null) {
         $this->table = $this->getDefaultTableName();
         $this->dbh = Container::get('database-handler');
+
+        $this->__set($this->createdAt, $this->getTimestamp());
 
         $this->fill($data);
     }
@@ -164,6 +174,8 @@ abstract class Model {
         $query = new QueryObject();
 
         if(isset($this->data[$this->primaryKey])) {
+            $this->__set($this->updatedAt, $this->getTimestamp());
+
             $query->update($this->table, $this->getData())->where($this->primaryKey, '=', $this->getPrimaryKeyValue());
         }
         else {
@@ -192,7 +204,9 @@ abstract class Model {
     private function fill($model) {
         if(!is_null($model) && (is_array($model) || is_object($model))) {
             foreach($model as $key => $value) {
-                $this->__set($key, $value);
+                $val = empty($value) ? null : $value;
+
+                $this->__set($key, $val);
             }
         }
 
@@ -209,7 +223,7 @@ abstract class Model {
     private function modelHasKey($key) {
         $hasKey = false;
 
-        if(in_array($key, $this->fillable) || $key === $this->primaryKey) {
+        if(in_array($key, $this->fillable) || $key === $this->primaryKey || $key === $this->createdAt || $key === $this->updatedAt) {
             $hasKey = true;
         }
 
@@ -244,6 +258,10 @@ abstract class Model {
         }
 
         return $data;
+    }
+
+    private function getTimestamp() {
+        return date("Y-m-d H:i:s");
     }
 
     /**
