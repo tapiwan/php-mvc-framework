@@ -13,7 +13,7 @@ class CLI {
     private $_allowedCmds = [
         'make:controller' => "createController",
         'make:model' => "createModel",
-        'make:migration' => "createMigration"
+        'make:table' => "createTable"
     ];
 
     /**
@@ -93,18 +93,16 @@ class CLI {
     /**
      * Erstelle ein Model
      */
-    private function createMigration() {
-        echo 'Please enter the name of the migration: ';
-        $migrationName = $this->readInput();
-
-        echo 'Please enter the table name for the migration: ';
+    private function createTable() {
+        echo 'Please enter the table name: ';
         $tableName = $this->readInput();
+        $fileName = "create_".$tableName."_table";
 
-        $migrationTemplate = $this->readTemplate("/templates/migration.sql.tpl");
-        $migrationTemplate = $this->replaceTag("{MigrationName}", $migrationName, $migrationTemplate);
-        $migrationTemplate = $this->replaceTag("{TableName}", $tableName, $migrationTemplate);
+        $tableTemplate = $this->readTemplate("/templates/table.sql.tpl");
+        $tableTemplate = $this->replaceTag("{FileName}", $fileName, $tableTemplate);
+        $tableTemplate = $this->replaceTag("{TableName}", $tableName, $tableTemplate);
 
-        $this->createFile("app/migrations", $migrationName, "sql", $migrationTemplate);
+        $this->createFile("app/tables", $fileName, "sql", $tableTemplate);
     }
 
     /**
@@ -137,6 +135,8 @@ class CLI {
             $handle = fopen($path, "w");
             fwrite($handle, $content);
             fclose($handle);
+
+            echo "Successfully created '$name.$extension'";
         }
     }
 

@@ -1,5 +1,5 @@
 /**
-* {MigrationName}
+* {FileName}
 */
 
 DROP TABLE IF EXISTS `{TableName}` ;
