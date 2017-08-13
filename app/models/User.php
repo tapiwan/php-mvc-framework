@@ -7,9 +7,7 @@ class User extends Model {
         parent::__construct($data);
 
         $this->fillable = [
-            'name',
-            'lastname',
-            'age'
+            'name'
         ];
     }
 }

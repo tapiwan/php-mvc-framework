@@ -21,29 +21,6 @@ class HomeController extends Controller {
     public function index(IRequest $request, IResponse $response) {
         echo "Index";
     }
-
-    /**
-     * test - Testroute
-     *
-     * @param IRequest $request
-     * @param IResponse $response
-     * @param $userName
-     * @param $orderId
-     */
-    public function test(IRequest $request, IResponse $response, $userName, $orderId) {
-        $user = User::find(
-            ['where', 'id', '=', 1]
-        );
-
-        /*$user = new User();
-        $user->name = "Dirk";
-        $user->age = 23;
-        $user->lastname = "Englert";*/
-
-        $user->name = "Max";
-
-        $user->save();
-    }
 }
 
 ?>
