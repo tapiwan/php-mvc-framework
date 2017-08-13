@@ -41,16 +41,10 @@ class HomeController extends Controller {
         $user->delete();*/
 
         $user = User::find(
-            ['where', 'id', '=', 46]
+            ['where', 'id', '=', 76]
         );
 
-        $user->name = "Dirk";
-        $user->lastname = "Englert";
-        $user->age = 33;
-
-        $user->save();
-
-
+        $user->delete();
     }
 }
 
