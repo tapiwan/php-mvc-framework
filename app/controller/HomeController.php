@@ -31,7 +31,9 @@ class HomeController extends Controller {
      * @param $orderId
      */
     public function test(IRequest $request, IResponse $response, $userName, $orderId) {
-
+        $user = User::find(
+            ['where', 'id', '=', 74]
+        );
     }
 }
 
