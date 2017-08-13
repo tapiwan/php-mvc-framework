@@ -176,10 +176,10 @@ abstract class Model {
         if(isset($this->data[$this->primaryKey])) {
             $this->__set($this->updatedAt, $this->getTimestamp());
 
-            $query->update($this->table, $this->getData())->where($this->primaryKey, '=', $this->getPrimaryKeyValue());
+            $query->update($this->getTable(), $this->getData())->where($this->primaryKey, '=', $this->getPrimaryKeyValue());
         }
         else {
-            $query->insertInto($this->table, $this->getData());
+            $query->insertInto($this->getTable(), $this->getData());
         }
 
         return $query;
@@ -192,7 +192,7 @@ abstract class Model {
         $query = new QueryObject();
 
         if(isset($this->data[$this->primaryKey])) {
-            $query->deleteFrom($this->table)->where($this->primaryKey, '=', $this->getPrimaryKeyValue());
+            $query->deleteFrom($this->getTable())->where($this->primaryKey, '=', $this->getPrimaryKeyValue());
         }
 
         return $query;
@@ -230,13 +230,17 @@ abstract class Model {
         return $hasKey;
     }
 
+    private function getTableNameFromClassName($class) {
+        return strtolower(array_pop(explode("\\", $class))) . "s";
+    }
+
     /**
      * Gibt den Standard Tabellennamen zurückgeben
      *
      * @return string
      */
     private function getDefaultTableName() {
-        return strtolower(array_pop(explode("\\", get_class($this)))) . "s";
+        return $this->getTableNameFromClassName(get_class($this));
     }
 
     /**
@@ -271,6 +275,15 @@ abstract class Model {
      */
     private function getPrimaryKeyValue() {
         return $this->data[$this->primaryKey];
+    }
+
+    /**
+     * Gibt den Tabellenname zurück
+     *
+     * @return string
+     */
+    public function getTable() {
+        return $this->table;
     }
 }
 

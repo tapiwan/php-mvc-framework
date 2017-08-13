@@ -10,6 +10,8 @@ class QueryObject implements IQueryObject {
         $tablesString = $this->tablesToString($tables);
 
         $this->addQueryPart("SELECT $columnsString FROM $tablesString");
+
+        return $this;
     }
 
     public function insertInto($tables, $data) {
@@ -59,10 +61,14 @@ class QueryObject implements IQueryObject {
         if(in_array($cmdUpperCase, $allowedCmds)) {
             $this->addQueryPart("$cmdUpperCase $key $operator $valueFormatted");
         }
+
+        return $this;
     }
 
     public function limit($amount) {
         $this->addQueryPart("LIMIT $amount");
+
+        return $this;
     }
 
     public function addQueryPart($string) {
