@@ -9,8 +9,6 @@ CREATE TABLE IF NOT EXISTS `users` (
 
     /* Fillables (müssen mit Model übereinstimmen) */
     `name` VARCHAR(255),
-    `age` INTEGER,
-    `lastname` VARCHAR(255),
 
     /* Timestamps */
     `created_at` TIMESTAMP DEFAULT '0000-00-00 00:00:00',

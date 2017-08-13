@@ -5,7 +5,6 @@ namespace bitbetrieb\CMS\Controller;
 use bitbetrieb\CMS\HTTP\IRequest as IRequest;
 use bitbetrieb\CMS\HTTP\IResponse as IResponse;
 use bitbetrieb\CMS\Template\Template as Template;
-use bitbetrieb\CMS\Model\User as User;
 
 /**
  * Class HomeController
@@ -13,7 +12,7 @@ use bitbetrieb\CMS\Model\User as User;
  */
 class HomeController extends Controller {
     /**
-     * index - Lade die Startseite
+     * Index
      *
      * @param IRequest $request
      * @param IResponse $response
