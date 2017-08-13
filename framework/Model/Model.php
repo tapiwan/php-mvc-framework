@@ -27,7 +27,7 @@ abstract class Model {
     protected $data = [];
 
     /**
-     * Primärschlüssel
+     * Primärschlüssel Spaltenname
      *
      * @var string
      */
@@ -41,7 +41,7 @@ abstract class Model {
     protected $fillable = [];
 
     /**
-     * Zeitstempel
+     * Zeitstempel Spaltennamen
      *
      * @var string
      */
@@ -68,8 +68,6 @@ abstract class Model {
     public function __construct($data = null) {
         $this->table = $this->getDefaultTableName();
         $this->dbh = Container::get('database-handler');
-
-        $this->__set($this->createdAt, $this->getTimestamp());
 
         $this->fill($data);
     }
@@ -155,6 +153,7 @@ abstract class Model {
     public function save() {
         $result = $this->dbh->query($this->buildSaveQuery());
 
+        //Bei erstmaligem Speichern, lies den erzeugten Primärschlüssel aus
         if($result->insertId != 0) {
             $this->__set($this->primaryKey, $result->insertId);
         }
@@ -202,6 +201,10 @@ abstract class Model {
      * Lade Model Daten
      */
     private function fill($model) {
+        //Wenn das Model neu ist setze Zeitstempel
+        $this->__set($this->createdAt, $this->getTimestamp());
+
+        //Wenn das Model geladen wird befülle Daten des Models
         if(!is_null($model) && (is_array($model) || is_object($model))) {
             foreach($model as $key => $value) {
                 $val = empty($value) ? null : $value;
@@ -230,6 +233,14 @@ abstract class Model {
         return $hasKey;
     }
 
+    /**
+     * Erzeuge einen Tabellennamen anhand des Klassennamens nach Konventionen
+     *
+     * Somit wird z.B. "bitbetrieb\CMS\Model\User" umgewandelt zu "users"
+     *
+     * @param $class
+     * @return string
+     */
     private function getTableNameFromClassName($class) {
         return strtolower(array_pop(explode("\\", $class))) . "s";
     }
@@ -264,6 +275,11 @@ abstract class Model {
         return $data;
     }
 
+    /**
+     * Gibt einen Zeitstempel im SQL Format zurück
+     *
+     * @return false|string
+     */
     private function getTimestamp() {
         return date("Y-m-d H:i:s");
     }
