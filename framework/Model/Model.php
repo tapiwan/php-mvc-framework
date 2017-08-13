@@ -28,6 +28,8 @@ abstract class Model {
 
     /**
      * Primärschlüssel
+     *
+     * @var string
      */
     protected $primaryKey = 'id';
 
@@ -44,6 +46,13 @@ abstract class Model {
      * @var array
      */
     protected $hidden = [];
+
+    /**
+     * Sagt aus ob das Model von der Datenbank geladen wurde oder nicht
+     *
+     * @var bool
+     */
+    protected $loaded = false;
 
     /**
      * Database Handler des Models
@@ -92,7 +101,10 @@ abstract class Model {
     }
 
     /**
-     * Suche Model
+     * Suche Models
+     *
+     * @return array|bool Wurde ein Model gefunden ist das Model enthalten. Wurden mehrere Models gefunden ist ein Array
+     * von Models enthalten
      */
     public static function find() {
         $query = new QueryObject();
@@ -103,15 +115,7 @@ abstract class Model {
         $query->selectFrom('*', $static->table);
 
         foreach($criteria as $criterion) {
-            if($criterion[0] === 'where') {
-                $query->where($criterion[1], $criterion[2], $criterion[3]);
-            }
-            else if($criterion[0] === 'and') {
-                $query->_and($criterion[1], $criterion[2], $criterion[3]);
-            }
-            else if($criterion[0] === 'or') {
-                $query->_or($criterion[1], $criterion[2], $criterion[3]);
-            }
+            $query->addCriteria($criterion[0], $criterion[1], $criterion[2], $criterion[3]);
         }
 
         $result = Container::get('database-handler')->query($query);
@@ -153,7 +157,7 @@ abstract class Model {
     private function buildSaveQuery() {
         $query = new QueryObject();
 
-        if(isset($this->data[$this->primaryKey])) {
+        if($this->loaded) {
             $query->update($this->table, $this->getData())->where($this->primaryKey, '=', $this->getPrimaryKeyValue());
         }
         else {
@@ -169,7 +173,7 @@ abstract class Model {
     private function buildDeleteQuery() {
         $query = new QueryObject();
 
-        if(isset($this->data[$this->primaryKey])) {
+        if($this->loaded) {
             $query->deleteFrom($this->table)->where($this->primaryKey, '=', $this->getPrimaryKeyValue());
         }
 
@@ -185,6 +189,8 @@ abstract class Model {
                 foreach($data as $key => $value) {
                     $this->__set($key, $value);
                 }
+
+                $this->loaded = true;
             }
         }
 

@@ -40,27 +40,29 @@ class QueryObject implements IQueryObject {
     }
 
     public function where($key, $operator, $value) {
-        $valueFormatted = $this->quoteValue($value);
-
-        $this->addQueryPart("WHERE $key $operator $valueFormatted");
-
-        return $this;
+        $this->addCriteria('WHERE', $key, $operator, $value);
     }
 
     public function _and($key, $operator, $value) {
-        $valueFormatted = $this->quoteValue($value);
-
-        $this->addQueryPart("AND $key $operator $valueFormatted");
-
-        return $this;
+        $this->addCriteria('AND', $key, $operator, $value);
     }
 
     public function _or($key, $operator, $value) {
+        $this->addCriteria('OR', $key, $operator, $value);
+    }
+
+    public function addCriteria($cmd, $key, $operator, $value) {
         $valueFormatted = $this->quoteValue($value);
+        $allowedCmds = ['WHERE', 'AND', 'OR'];
+        $cmdUpperCase = strtoupper($cmd);
 
-        $this->addQueryPart("OR $key $operator $valueFormatted");
+        if(in_array($cmdUpperCase, $allowedCmds)) {
+            $this->addQueryPart("$cmdUpperCase $key $operator $valueFormatted");
+        }
+    }
 
-        return $this;
+    public function limit($amount) {
+        $this->addQueryPart("LIMIT $amount");
     }
 
     public function addQueryPart($string) {

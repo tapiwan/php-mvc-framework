@@ -46,9 +46,11 @@ class HomeController extends Controller {
 
         $user->name = "Dirk";
         $user->lastname = "Englert";
-        $user->age = 23;
+        $user->age = 33;
 
         $user->save();
+
+
     }
 }
 

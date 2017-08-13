@@ -110,6 +110,11 @@ class DatabaseHandler implements IDatabaseHandler {
         }
     }
 
+    /**
+     * Überprüft ob der Query erfolgreich war
+     *
+     * @return bool
+     */
     private function checkStatement() {
         if(!method_exists($this->statement, 'errorCode')) return false;
         if($this->statement->errorCode() !== "00000") return false;
@@ -117,6 +122,11 @@ class DatabaseHandler implements IDatabaseHandler {
         return true;
     }
 
+    /**
+     * Gibt ResultSet des Queries zurück
+     *
+     * @return array
+     */
     private function getQueryResult() {
         return $this->statement->fetchAll(\PDO::FETCH_ASSOC);
     }
