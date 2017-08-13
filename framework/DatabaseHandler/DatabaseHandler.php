@@ -58,31 +58,29 @@ class DatabaseHandler implements IDatabaseHandler {
     /**
      * Führe SQL Query aus und gebe ResultSet zurück
      *
-     * @param string $query SQL Query
-     * $param boolean $execution_only Flag die entscheidet ob Query nur ausgeführt wird oder ob ein ResultSet zurückgegeben
-     * werden soll
+     * @param IQueryObject $query
      *
-     * @return array|boolean Assoziatives Array mit Schlüssel-Wert Paaren. False wenn Query nicht erfolgreich war. True
-     * wenn Query erfolgreich war aber die $execution_only Flag benutzt wurde
+     * @return object Objekt mit Erfolg und Daten
      */
     public function query(IQueryObject $query) {
-        $result = [];
+        $result = (object) [
+            'success' => false,
+            'data' => []
+        ];
 
         $this->checkConnection();
 
         $this->statement = $this->connection->query($query->assemble());
 
         if($this->checkStatement()) {
-            foreach($this->getQueryResult() as $item) {
-                $result[] = $item;
-            };
+            $result->success = true;
 
-            if(count($result) === 0) {
-                $result = true;
-            }
+            foreach($this->getQueryResult() as $item) {
+                $result->data[] = $item;
+            };
         }
         else {
-            $result = false;
+            $result->success = false;
         }
 
         return $result;

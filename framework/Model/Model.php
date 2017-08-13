@@ -110,7 +110,7 @@ abstract class Model {
         $query = new QueryObject();
         $static = new static();
         $criteria = func_get_args();
-        $return = null;
+        $return = [];
 
         $query->selectFrom('*', $static->table);
 
@@ -118,19 +118,28 @@ abstract class Model {
             $query->addCriteria($criterion[0], $criterion[1], $criterion[2], $criterion[3]);
         }
 
-        $result = Container::get('database-handler')->query($query);
+        $result = Container::get('database-handler')->query($query, get_class($static));
 
-        if(count($result) === 1) {
-            $return = $static->fill($result);
-        }
-        else if(count($result) > 1) {
-            $return = [];
+        if($result->success) {
+            if(count($result->data) === 1) {
+                //Einzelnes Ergebnis gefunden
+                $return = $static->fill($result->data[0]);
+            }
+            else if(count($result->data) > 1) {
+                //Mehrere Ergebnisse gefunden
+                $return = [];
 
-            foreach($result as $model) {
-                $return[] = (new static())->fill($model);
+                foreach($result->data as $model) {
+                    $return[] = (new static())->fill($model);
+                }
+            }
+            else {
+                //Keine Ergebnisse gefunden
+                $return = false;
             }
         }
         else {
+            //Keine Ergebnisse gefunden
             $return = false;
         }
 
@@ -184,11 +193,9 @@ abstract class Model {
      * Lade Model Daten
      */
     private function fill($model) {
-        if(!is_null($model)) {
-            foreach($model as $data) {
-                foreach($data as $key => $value) {
-                    $this->__set($key, $value);
-                }
+        if(!is_null($model) && (is_array($model) || is_object($model))) {
+            foreach($model as $key => $value) {
+                $this->__set($key, $value);
 
                 $this->loaded = true;
             }
