@@ -48,13 +48,6 @@ abstract class Model {
     protected $hidden = [];
 
     /**
-     * Sagt aus ob das Model von der Datenbank geladen wurde oder nicht
-     *
-     * @var bool
-     */
-    protected $loaded = false;
-
-    /**
      * Database Handler des Models
      *
      * @var object
@@ -150,7 +143,11 @@ abstract class Model {
      * Speichere Model
      */
     public function save() {
-        $this->dbh->query($this->buildSaveQuery());
+        $result = $this->dbh->query($this->buildSaveQuery());
+
+        if($result->insertId != 0) {
+            $this->__set($this->primaryKey, $result->insertId);
+        }
     }
 
     /**
@@ -166,7 +163,7 @@ abstract class Model {
     private function buildSaveQuery() {
         $query = new QueryObject();
 
-        if($this->loaded) {
+        if(isset($this->data[$this->primaryKey])) {
             $query->update($this->table, $this->getData())->where($this->primaryKey, '=', $this->getPrimaryKeyValue());
         }
         else {
@@ -182,7 +179,7 @@ abstract class Model {
     private function buildDeleteQuery() {
         $query = new QueryObject();
 
-        if($this->loaded) {
+        if(isset($this->data[$this->primaryKey])) {
             $query->deleteFrom($this->table)->where($this->primaryKey, '=', $this->getPrimaryKeyValue());
         }
 
@@ -196,8 +193,6 @@ abstract class Model {
         if(!is_null($model) && (is_array($model) || is_object($model))) {
             foreach($model as $key => $value) {
                 $this->__set($key, $value);
-
-                $this->loaded = true;
             }
         }
 

@@ -65,7 +65,8 @@ class DatabaseHandler implements IDatabaseHandler {
     public function query(IQueryObject $query) {
         $result = (object) [
             'success' => false,
-            'data' => []
+            'data' => [],
+            'insertId' => 0
         ];
 
         $this->checkConnection();
@@ -74,6 +75,7 @@ class DatabaseHandler implements IDatabaseHandler {
 
         if($this->checkStatement()) {
             $result->success = true;
+            $result->insertId = $this->connection->lastInsertId();
 
             foreach($this->getQueryResult() as $item) {
                 $result->data[] = $item;

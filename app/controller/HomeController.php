@@ -31,20 +31,7 @@ class HomeController extends Controller {
      * @param $orderId
      */
     public function test(IRequest $request, IResponse $response, $userName, $orderId) {
-        /*$user = new User();
 
-        $user->id = 25;
-        $user->name = 'Test';
-        $user->lastname = "ASd";
-        $user->age = 20;
-
-        $user->delete();*/
-
-        $user = User::find(
-            ['where', 'id', '<=', 74]
-        );
-
-        print_r($user);
     }
 }
 
