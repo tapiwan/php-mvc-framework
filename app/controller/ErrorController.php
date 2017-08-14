@@ -18,7 +18,9 @@ class ErrorController extends Controller {
      * @param IResponse $response
      */
     public function index(IRequest $request, IResponse $response) {
-        echo "Error!";
+        $response->setStatus(404);
+        $response->setBody("Error");
+        $response->send();
     }
 }
 
