@@ -10,7 +10,7 @@ use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
  */
 class Template implements ITemplate {
 	/**
-	 * Pfad zur Template-Datei
+	 * Name der Template-Datei
 	 *
 	 * @var string
 	 */
@@ -24,19 +24,19 @@ class Template implements ITemplate {
 	private $vars = [];
 
 	/**
-	 * Rendered template parts
+	 * Gerenderte Template Teile
 	 *
 	 * @var array
 	 */
 	private $parts = [];
 
 	/**
-	 * Name des momentanen Blocks
+	 * Name des momentanen aktiven Blocks
 	 */
 	private $currentBlock = "";
 
 	/**
-	 * Flag welche aussagt ob gerade gerendert wird
+	 * Flag welche angibt ob gerade gerendert wird
 	 */
 	private $rendering = false;
 
@@ -68,11 +68,11 @@ class Template implements ITemplate {
 	 * @param $value
 	 */
 	public function __set($key, $value) {
-		if(!$this->rendering) {
+		//Variablen des Template sind nur veränderbar solange nicht gerendert wird
+		if (!$this->rendering) {
 			$this->vars[$key] = $value;
-		}
-		else {
-			throw new \Exception("Can't mutate template variables during rendering process.");
+		} else {
+			throw new \Exception("Can't mutate template variables '$key' during rendering process.");
 		}
 	}
 
@@ -92,6 +92,8 @@ class Template implements ITemplate {
 	 */
 	private function endblock() {
 		$this->interceptBuffer($this->currentBlock);
+
+		$this->currentBlock = "";
 	}
 
 	/**
@@ -101,8 +103,6 @@ class Template implements ITemplate {
 	 * @throws \Exception TemplateNotFound
 	 */
 	public function render() {
-		$this->templateFileExists($this->file);
-
 		$this->rendering = true;
 		$this->startBuffer();
 		$this->loadTemplateFile($this->file);
@@ -135,25 +135,29 @@ class Template implements ITemplate {
 	 *
 	 * @param $file
 	 */
-	public function inc($file) {
+	public function load($file) {
 		$this->loadTemplateFile($file);
 	}
 
 	/**
-	 * Ändert die Template Datei
+	 * Lädt die angegebene Template Datei
 	 *
 	 * @param $file
 	 */
 	private function loadTemplateFile($file) {
-		require($this->resolveFilePath($file));
+		$path = $this->resolveFilePath($file);
+
+		$this->templateFileExists($path);
+
+		require($path);
 	}
 
 	/**
 	 * Überprüft ob ein Template existiert
 	 */
 	private function templateFileExists($file) {
-		if (!file_exists($this->resolveFilePath($file))) {
-			throw new \Exception("Template file '{$this->resolveFilePath($file)}' missing.");
+		if (!file_exists($file)) {
+			throw new \Exception("Template file '$file' missing.");
 		}
 	}
 
@@ -164,7 +168,7 @@ class Template implements ITemplate {
 	 * @return string
 	 */
 	private function resolveFilePath($file) {
-		return Container::get('view-directory').$file;
+		return realpath(Container::get('view-directory').$file);
 	}
 
 	/**
@@ -201,10 +205,9 @@ class Template implements ITemplate {
 	 * @param $content
 	 */
 	private function addTemplatePart($key, $content) {
-		if(empty($key)) {
+		if (empty($key)) {
 			$this->parts[] = $content;
-		}
-		else {
+		} else {
 			$this->parts[$key] = $content;
 		}
 	}

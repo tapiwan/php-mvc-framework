@@ -18,10 +18,8 @@ class HomeController extends Controller {
      * @param IResponse $response
      */
     public function index(IRequest $request, IResponse $response) {
-        $tpl = new Template('b.php', [
-        	   "name" => "Dirk",
-            "age" => 23,
-            "friends" => ["Max", "Peter", "Luis"]
+        $tpl = new Template('index.php', [
+        	   "title" => "Home"
         ]);
 
         $response->setBody($tpl->render());

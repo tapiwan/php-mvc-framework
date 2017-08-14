@@ -5,13 +5,16 @@
 	<meta name="viewport"
 	      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
-	<title>Document</title>
+	<title><?= $this->title; ?></title>
 </head>
 <body>
-	<?php $this->block('content'); ?>
-	<?php $this->endblock(); ?>
+<?php $this->block('header'); ?>
+<?php $this->endblock(); ?>
 
-	<?php $this->block('footer'); ?>
-	<?php $this->endblock(); ?>
+<?php $this->block('content'); ?>
+<?php $this->endblock(); ?>
+
+<?php $this->block('footer'); ?>
+<?php $this->endblock(); ?>
 </body>
 </html>

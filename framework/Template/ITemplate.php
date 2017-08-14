@@ -13,7 +13,7 @@ interface ITemplate {
     public function render();
     public function display();
     public function extend($file);
-    public function inc($file);
+    public function load($file);
 }
 
 ?>

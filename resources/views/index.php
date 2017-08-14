@@ -1,13 +1,13 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title><?= $this->title; ?></title>
-</head>
-<body>
-    <?= $this->content; ?>
-</body>
-</html>
+<?php $this->extend('layouts/base.php'); ?>
+
+<?php $this->block('header'); ?>
+<header>EXAMPLE HEADER</header>
+<?php $this->endblock(); ?>
+
+<?php $this->block('content'); ?>
+<main>EXAMPLE CONTENT</main>
+<?php $this->endblock(); ?>
+
+<?php $this->block('footer'); ?>
+<footer>EXAMPLE FOOTER</footer>
+<?php $this->endblock(); ?>
