@@ -36,24 +36,19 @@ class Template implements ITemplate {
 	private $currentBlock = "";
 
 	/**
+	 * Flag welche aussagt ob gerade gerendert wird
+	 */
+	private $rendering = false;
+
+	/**
 	 * Template constructor.
 	 *
 	 * @param string $file Dateiname ohne Pfad, wird automatisch ergänzt
 	 * @param array $vars Variablen des Templates
 	 */
 	public function __construct($file, $vars = []) {
-		$this->setFile($file);
+		$this->file = $file;
 		$this->vars = $vars;
-	}
-
-	/**
-	 * Magische Set Methode für Template Variablen
-	 *
-	 * @param $key
-	 * @param $value
-	 */
-	public function __set($key, $value) {
-		$this->set($key, $value);
 	}
 
 	/**
@@ -63,7 +58,7 @@ class Template implements ITemplate {
 	 * @return mixed
 	 */
 	public function __get($key) {
-		return $this->get($key);
+		return $this->vars[$key];
 	}
 
 	/**
@@ -72,55 +67,29 @@ class Template implements ITemplate {
 	 * @param $key
 	 * @param $value
 	 */
-	public function set($key, $value) {
-		$this->vars[$key] = $value;
-	}
-
-	/**
-	 * Get Methode für Template Variablen
-	 *
-	 * @param $key
-	 * @return mixed
-	 */
-	public function get($key) {
-		return $this->vars[$key];
-	}
-
-	/**
-	 * Startet einen Output Buffer
-	 */
-	private function startBuffer() {
-		ob_start();
-	}
-
-	/**
-	 * Gibt den bisherigen Output Buffer zurück
-	 *
-	 * @return string
-	 */
-	private function interceptBuffer($key = "") {
-		if(empty($key)) {
-			$this->parts[] = ob_get_contents();
+	public function __set($key, $value) {
+		if(!$this->rendering) {
+			$this->vars[$key] = $value;
 		}
 		else {
-			$this->parts[$key] = ob_get_contents();
+			throw new \Exception("Can't mutate template variables during rendering process.");
 		}
-
-		ob_clean();
 	}
 
-	private function endBuffer() {
-		$this->interceptBuffer();
-
-		ob_end_clean();
-	}
-
+	/**
+	 * Startet einen neuen Block
+	 *
+	 * @param $name
+	 */
 	private function block($name) {
 		$this->interceptBuffer();
 
 		$this->currentBlock = $name;
 	}
 
+	/**
+	 * Beendet einen Block
+	 */
 	private function endblock() {
 		$this->interceptBuffer($this->currentBlock);
 	}
@@ -132,15 +101,13 @@ class Template implements ITemplate {
 	 * @throws \Exception TemplateNotFound
 	 */
 	public function render() {
-		if (!file_exists($this->file)) {
-			throw new \Exception("Template file '{$this->file}' missing.");
-		}
+		$this->templateFileExists($this->file);
 
+		$this->rendering = true;
 		$this->startBuffer();
-
-		require($this->file);
-
+		$this->loadTemplateFile($this->file);
 		$this->endBuffer();
+		$this->rendering = false;
 
 		return implode($this->parts);
 	}
@@ -160,7 +127,7 @@ class Template implements ITemplate {
 	 * @param $file
 	 */
 	public function extend($file) {
-		require($this->resolveFilePath($file));
+		$this->loadTemplateFile($file);
 	}
 
 	/**
@@ -169,7 +136,7 @@ class Template implements ITemplate {
 	 * @param $file
 	 */
 	public function inc($file) {
-		require($this->resolveFilePath($file));
+		$this->loadTemplateFile($file);
 	}
 
 	/**
@@ -177,8 +144,17 @@ class Template implements ITemplate {
 	 *
 	 * @param $file
 	 */
-	private function setFile($file) {
-		$this->file = $this->resolveFilePath($file);
+	private function loadTemplateFile($file) {
+		require($this->resolveFilePath($file));
+	}
+
+	/**
+	 * Überprüft ob ein Template existiert
+	 */
+	private function templateFileExists($file) {
+		if (!file_exists($this->resolveFilePath($file))) {
+			throw new \Exception("Template file '{$this->resolveFilePath($file)}' missing.");
+		}
 	}
 
 	/**
@@ -189,6 +165,48 @@ class Template implements ITemplate {
 	 */
 	private function resolveFilePath($file) {
 		return Container::get('view-directory').$file;
+	}
+
+	/**
+	 * Startet einen Output Buffer
+	 */
+	private function startBuffer() {
+		ob_start();
+	}
+
+	/**
+	 * Speichert den bisherigen Buffer und leert ihn danach
+	 *
+	 * @return string
+	 */
+	private function interceptBuffer($key = "") {
+		$this->addTemplatePart($key, ob_get_contents());
+
+		ob_clean();
+	}
+
+	/**
+	 * Beendet den Output Buffer
+	 */
+	private function endBuffer() {
+		$this->interceptBuffer();
+
+		ob_end_clean();
+	}
+
+	/**
+	 * Fügt einen Template Part mit Content hinzu mit angegebenem Schlüssel oder nummeriertem Index
+	 *
+	 * @param $key
+	 * @param $content
+	 */
+	private function addTemplatePart($key, $content) {
+		if(empty($key)) {
+			$this->parts[] = $content;
+		}
+		else {
+			$this->parts[$key] = $content;
+		}
 	}
 }
 
