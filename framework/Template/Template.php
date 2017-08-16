@@ -62,7 +62,7 @@ class Template implements ITemplate {
 	 * @return mixed
 	 */
 	public function __get($key) {
-		return $this->vars[$key];
+		return isset($this->$key) ? $this->vars[$key] : false;
 	}
 
 	/**
