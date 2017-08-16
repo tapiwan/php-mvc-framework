@@ -28,15 +28,19 @@ class Template implements ITemplate {
 	 *
 	 * @var array
 	 */
-	private $parts = [];
+	private $renderedParts = [];
 
 	/**
 	 * Name des momentanen aktiven Blocks
+	 *
+	 * @var null|string
 	 */
-	private $currentBlock = "";
+	private $currentBlock = null;
 
 	/**
 	 * Flag welche angibt ob gerade gerendert wird
+	 *
+	 * @var bool
 	 */
 	private $rendering = false;
 
@@ -62,7 +66,7 @@ class Template implements ITemplate {
 	}
 
 	/**
-	 * Set Methode für Template Variablen
+	 * Magische Set Methode für Template Variablen
 	 *
 	 * @param $key
 	 * @param $value
@@ -72,35 +76,34 @@ class Template implements ITemplate {
 		if (!$this->rendering) {
 			$this->vars[$key] = $value;
 		} else {
-			throw new \Exception("Can't mutate template variables '$key' during rendering process.");
+			throw new \Exception("Can't mutate template variable '$key' during rendering process.");
 		}
 	}
 
 	/**
-	 * Startet einen neuen Block
+	 * Magische Isset Methode für Template Variablen
 	 *
-	 * @param $name
+	 * @param $key
+	 * @return bool
 	 */
-	private function block($name) {
-		$this->interceptBuffer();
-
-		$this->currentBlock = $name;
+	public function __isset($key) {
+		return isset($this->vars[$key]);
 	}
 
 	/**
-	 * Beendet einen Block
+	 * Magische Unset Methode für Template Variable
+	 *
+	 * @param $key
 	 */
-	private function endblock() {
-		$this->interceptBuffer($this->currentBlock);
-
-		$this->currentBlock = "";
+	public function __unset($key) {
+		unset($this->vars[$key]);
 	}
 
 	/**
 	 * Liest die Template Datei ein und gibt den produzierten Inhalt zurück
 	 *
 	 * @return string Generierter Inhalt
-	 * @throws \Exception TemplateNotFound
+	 * @throws \Exception TemplateNotFounds
 	 */
 	public function render() {
 		$this->rendering = true;
@@ -109,7 +112,7 @@ class Template implements ITemplate {
 		$this->endBuffer();
 		$this->rendering = false;
 
-		return implode($this->parts);
+		return implode("", $this->renderedParts);
 	}
 
 	/**
@@ -168,7 +171,7 @@ class Template implements ITemplate {
 	 * @return string
 	 */
 	private function resolveFilePath($file) {
-		return realpath(Container::get('view-directory').$file);
+		return Container::get('view-directory').$file;
 	}
 
 	/**
@@ -183,8 +186,8 @@ class Template implements ITemplate {
 	 *
 	 * @return string
 	 */
-	private function interceptBuffer($key = "") {
-		$this->addTemplatePart($key, ob_get_contents());
+	private function interceptBuffer() {
+		$this->addTemplatePart(ob_get_contents());
 
 		ob_clean();
 	}
@@ -204,12 +207,33 @@ class Template implements ITemplate {
 	 * @param $key
 	 * @param $content
 	 */
-	private function addTemplatePart($key, $content) {
-		if (empty($key)) {
-			$this->parts[] = $content;
-		} else {
-			$this->parts[$key] = $content;
+	private function addTemplatePart($content) {
+		if (is_null($this->currentBlock)) {
+			$this->renderedParts[] = $content;
 		}
+		else {
+			$this->renderedParts[$this->currentBlock] = $content;
+		}
+	}
+
+	/**
+	 * Startet einen neuen benannten Block
+	 *
+	 * @param $name
+	 */
+	private function block($name) {
+		$this->interceptBuffer();
+
+		$this->currentBlock = $name;
+	}
+
+	/**
+	 * Beendet einen benannten Block
+	 */
+	private function endblock() {
+		$this->interceptBuffer();
+
+		$this->currentBlock = null;
 	}
 }
 

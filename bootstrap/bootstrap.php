@@ -2,7 +2,7 @@
 /**
  * INCLUDES
  */
-include realpath("../framework/Autoloader/Autoloader.php");
+require_once(__DIR__."/../framework/Autoloader/Autoloader.php");
 
 /**
  * IMPORTS
@@ -14,13 +14,13 @@ use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
  * AUTOLOADER
  */
 $autoloader = new Autoloader();
-$autoloadList = file_get_contents(realpath("../config/autoload.json"));
+$autoloadList = file_get_contents("../config/autoload.json");
 $autoloader->initializeViaJSON($autoloadList);
 
 /**
  * DEPENDENCY INJECTION CONTAINER
  */
-$containerList = file_get_contents(realpath("../config/container.json"));
+$containerList = file_get_contents("../config/container.json");
 Container::initializeViaJSON($containerList);
 
 /**

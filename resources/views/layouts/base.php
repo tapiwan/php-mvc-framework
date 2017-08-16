@@ -9,12 +9,15 @@
 </head>
 <body>
 <?php $this->block('header'); ?>
+<header>BASE HEADER</header>
 <?php $this->endblock(); ?>
 
 <?php $this->block('content'); ?>
+<main>BASE CONTENT</main>
 <?php $this->endblock(); ?>
 
 <?php $this->block('footer'); ?>
+<footer>BASE FOOTER</footer>
 <?php $this->endblock(); ?>
 </body>
 </html>
