@@ -125,6 +125,15 @@ class Response implements IResponse {
             print($this->body);
         }
     }
+
+    /**
+     * Umleiten
+     */
+    public function redirect($url) {
+        $this->addHeader('Location', $url);
+
+        $this->send();
+    }
 }
 
 ?>
