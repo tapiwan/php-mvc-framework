@@ -12,7 +12,14 @@ use bitbetrieb\CMS\HTTP\IRequest as IRequest;
  */
 class Route implements IRoute {
     /**
-     * Regulärer Ausdruck
+     * Die original Route
+     *
+     * @var string
+     */
+    private $route;
+
+    /**
+     * Regulärer Ausdruck der Route
      *
      * @var string
      */
@@ -40,26 +47,57 @@ class Route implements IRoute {
     private $controllerClassMethodName;
 
     /**
+     * URI des Requests
+     *
+     * @var string
+     */
+    private $uri;
+
+    /**
+     * Argumente mit denen die Controllermethode aufgerufen werden soll
+     *
+     * @var array
+     */
+    private $arguments = [];
+
+    /**
      * Route constructor.
      *
-     * @param string $routeRegex Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
+     * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
      * @param string $httpMethod HTTP Methode
      * @param string $callable Zeichenkette in Form von "controller@funktion"
      */
-    public function __construct($routeRegex, $httpMethod, $callable) {
-        $this->setRegex($routeRegex);
+    public function __construct($route, $httpMethod, $callable) {
+        $this->setRoute($route);
+        $this->setRouteRegex($route);
         $this->setHttpMethod($httpMethod);
         $this->initCallable($callable);
     }
 
     /**
+     * Setzt die original Route
+     *
+     * @param $route
+     */
+    public function setRoute($route) {
+        $this->route = $route;
+    }
+
+    /**
+     * Gibt die original Route zurück
+     */
+    public function getRoute() {
+        return $this->route;
+    }
+
+    /**
      * Baut die Route zu regulärem Ausdruck um und speichert ihn
      *
-     * @param string $routeRegex Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
+     * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
      */
-    public function setRegex($routeRegex) {
+    public function setRouteRegex($route) {
         //Platzhalter {} durch regulären Ausdruck (.*) ersetzen
-        $regex = preg_replace("/({.*?})/", "(.*)", $routeRegex);
+        $regex = preg_replace("/({.*?})/", "(.*)", $route);
 
         //Slashes in regulärem Ausdruck ersetzen
         $regex = str_replace('/', '\/', $regex);
@@ -75,7 +113,7 @@ class Route implements IRoute {
      *
      * @return string Regulärer Ausdruck der Route
      */
-    public function getRegex() {
+    public function getRouteRegex() {
         return $this->routeRegex;
     }
 
@@ -124,7 +162,7 @@ class Route implements IRoute {
      * @return string Klassenname des Controllers
      */
     public function getControllerClassName() {
-        return Container::get('controller-namespace').$this->controllerClassName;
+        return $this->controllerClassName;
     }
 
     /**
@@ -146,6 +184,52 @@ class Route implements IRoute {
     }
 
     /**
+     * Setzt die URI, aus der die Parameter ausgelesen werden sollen
+     *
+     * @param $uri
+     */
+    public function setUri($uri) {
+        $this->uri = $uri;
+    }
+
+    /**
+     * Gibt die URI des Requests zurück
+     *
+     * @param $uri
+     * @return string
+     */
+    public function getUri() {
+        return $this->uri;
+    }
+
+    /**
+     * Fügt ein Argument für die Controllermethode hinzu
+     *
+     * @param mixed $arg
+     */
+    public function addArgument($arg) {
+        $this->arguments[] = $arg;
+    }
+
+    /**
+     * Setzt die Argumente für die Controllermethode
+     *
+     * @param array $args
+     */
+    public function setArguments(Array $args) {
+        $this->arguments = $args;
+    }
+
+    /**
+     * Gibt die Argumente der Controllermethode zurück
+     *
+     * @return array
+     */
+    public function getArguments() {
+        return $this->arguments;
+    }
+
+    /**
      * Vergleicht HTTP Methode der Route mit übergebener Methode
      *
      * @param string $method Zu vergleichende HTTP Methode
@@ -164,33 +248,21 @@ class Route implements IRoute {
      * @return bool Enthält true wenn URI übereinstimmen, false wenn nicht
      */
     public function uriMatchesRegex($uri) {
-        $match = preg_match($this->getRegex(), $uri);
+        $match = preg_match($this->getRouteRegex(), $uri);
 
         return ($match === 1) ? true : false;
     }
 
     /**
-     * Sammle die nötigen Parameter die an die Controllermethode übergeben werden bei Aktivierung der Route
+     * Fügt an die Routen Parameter noch die URI Parameter hinzu
      *
-     * @param IRequest $request
-     * @param IResponse $response
-     *
-     * @return array Enthält Parameter die an die Controllermethode übergeben werden. Enthält mindestens Request und
-     * Response als jeweils erstes und zweites Element. Weitere Elemente sind die aus der URI ausgelesen Parameter.
+     * @param array $routeParameters
      */
-    public function getInvocationArguments(IRequest $request, IResponse $response) {
-        $params = [];
-
-        //Request und Response hinzufügen
-        $params[] = $request;
-        $params[] = $response;
-
+    public function combineInvocationArguments() {
         //URI Parameter auslesen und hinzufügen
-        foreach($this->getURIParameters($request->uri()) as $param) {
-            $params[] = $param;
+        foreach($this->getURIParameters() as $param) {
+            $this->arguments[] = $param;
         }
-
-        return $params;
     }
 
     /**
@@ -201,10 +273,10 @@ class Route implements IRoute {
      * @return array Enthält aus der URI ausgelesene Parameter als Schlüssel-Wert Paar. Wenn es keine Parameter
      * gibt ist es ein leeres Array
      */
-    public function getURIParameters($uri) {
+    public function getURIParameters() {
         $params = [];
 
-        if(!empty($this->getRegex()) && preg_match($this->getRegex(), $uri, $params)) {
+        if(!empty($this->getRouteRegex()) && preg_match($this->getRouteRegex(), $this->getUri(), $params)) {
             array_shift($params);
         }
 
@@ -212,12 +284,13 @@ class Route implements IRoute {
     }
 
     /**
-     * Aktiviere die Route. Der Controller wird erzeugt und die Methode wird mit den notwendigen Parametern aufgerufen
-     *
-     * @param IRequest $request
-     * @param IResponse $response
+     * Aktiviere die Route.
+     * Der Controller wird erzeugt und die Methode wird mit den notwendigen Parametern aufgerufen
      */
-    public function invoke(IRequest $request, IResponse $response) {
+    public function invoke() {
+        //URI Parameter an gegebene Parameter anhängen
+        $this->combineInvocationArguments();
+
         //Controller Klassen Reflektor erzeugen
         $controller = new \ReflectionClass($this->getControllerClassName());
 
@@ -225,7 +298,7 @@ class Route implements IRoute {
         $method = new \ReflectionMethod($this->getControllerClassName(), $this->getControllerClassMethodName());
 
         //Controller mit Methode aufrufen und Parameter übergeben
-        $method->invokeArgs($controller->newInstance(), $this->getInvocationArguments($request, $response));
+        $method->invokeArgs($controller->newInstance(), $this->getArguments());
     }
 }
 

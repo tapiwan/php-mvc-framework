@@ -2,8 +2,8 @@
 
 namespace bitbetrieb\CMS\Controller;
 
-use bitbetrieb\CMS\HTTP\IRequest as IRequest;
-use bitbetrieb\CMS\HTTP\IResponse as IResponse;
+use bitbetrieb\CMS\HTTP\Request as Request;
+use bitbetrieb\CMS\HTTP\Response as Response;
 use bitbetrieb\CMS\Template\Template as Template;
 
 /**
@@ -14,10 +14,10 @@ class ErrorController extends Controller {
     /**
      * Index
      *
-     * @param IRequest $request
-     * @param IResponse $response
+     * @param Request $request
      */
-    public function index(IRequest $request, IResponse $response) {
+    public function index(Request $req) {
+        $response = new Response();
         $response->setStatus(404);
         $response->setBody("Error");
         $response->send();

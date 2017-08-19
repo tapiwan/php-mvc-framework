@@ -4,6 +4,8 @@
     "class": "bitbetrieb\\CMS\\Application\\Application",
     "type": "singleton",
     "dependencies": [
+      "$this",
+      "config",
       "front-controller"
     ]
   },

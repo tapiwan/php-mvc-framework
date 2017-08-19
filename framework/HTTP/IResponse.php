@@ -15,6 +15,7 @@ interface IResponse {
     public function writeToBody($content);
     public function clearBody();
     public function send();
+    public function redirect($location);
 }
 
 ?>

@@ -10,7 +10,14 @@ use bitbetrieb\CMS\HTTP\IRequest as IRequest;
  * @package bitbetrieb\CMS\FrontController
  */
 interface IFrontController {
-    public function __construct(IRequest $request, IResponse $response, $routesFile);
+    public function __construct(IRequest $request);
+    public function addExtension($file);
+    public function loadExtension($file);
+    public function loadExtensions();
+    public function addRouteParameter($parameter);
+    public function getRouteParameters();
+    public function setControllerNamespacePrefix($controllerNamespacePrefix);
+    public function getControllerNamespacePrefix();
     public function get($route, $callable);
     public function post($route, $callable);
     public function put($route, $callable);

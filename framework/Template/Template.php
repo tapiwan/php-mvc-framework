@@ -9,6 +9,18 @@ use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
  * @package bitbetrieb\CMS\Template
  */
 class Template implements ITemplate {
+    /**
+     * Verzeichnis in dem alle Template Dateien liegen
+     *
+     * @var string
+     */
+    private static $viewDirectory = "";
+
+    /**
+     * Verzeichnis in dem dieses Template liegt
+     */
+    private $fileDirectory = "";
+
 	/**
 	 * Name der Template-Datei
 	 *
@@ -32,11 +44,15 @@ class Template implements ITemplate {
 
 	/**
 	 * Name des momentanen aktiven Blocks
+     *
+     * @var string
 	 */
 	private $currentBlock = "";
 
 	/**
 	 * Flag welche angibt ob gerade gerendert wird
+     *
+     * @var bool
 	 */
 	private $rendering = false;
 
@@ -46,9 +62,10 @@ class Template implements ITemplate {
 	 * @param string $file Dateiname ohne Pfad, wird automatisch ergänzt
 	 * @param array $vars Variablen des Templates
 	 */
-	public function __construct($file, $vars = []) {
+	public function __construct($file, $vars = [], $fileDirectory = "") {
 		$this->file = $file;
 		$this->vars = $vars;
+		$this->fileDirectory = $fileDirectory;
 	}
 
 	/**
@@ -75,6 +92,24 @@ class Template implements ITemplate {
 			throw new \Exception("Can't mutate template variables '$key' during rendering process.");
 		}
 	}
+
+    /**
+     * Setzt das Verzeichnis in dem alle Templates liegen
+     *
+     * @param $dir
+     */
+	public static function setViewDirectory($dir) {
+	    self::$viewDirectory = $dir;
+    }
+
+    /**
+     * Setzt das Verzeichnis in dem dieses Template liegt
+     *
+     * @param $dir
+     */
+    public function setFileDirectory($dir) {
+	    $this->fileDirectory = $dir;
+    }
 
 	/**
 	 * Startet einen neuen Block
@@ -168,7 +203,14 @@ class Template implements ITemplate {
 	 * @return string
 	 */
 	private function resolveFilePath($file) {
-		return realpath(Container::get('view-directory').$file);
+	    if(!empty($this->fileDirectory)) {
+	        return $this->fileDirectory.DIRECTORY_SEPARATOR.$file;
+        }
+        else if(!empty(self::$viewDirectory)) {
+	        return self::$viewDirectory.DIRECTORY_SEPARATOR.$file;
+        }
+
+		return $file;
 	}
 
 	/**
@@ -180,8 +222,6 @@ class Template implements ITemplate {
 
 	/**
 	 * Speichert den bisherigen Buffer und leert ihn danach
-	 *
-	 * @return string
 	 */
 	private function interceptBuffer($key = "") {
 		$this->addTemplatePart($key, ob_get_contents());
