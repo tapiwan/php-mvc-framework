@@ -13,7 +13,8 @@ class CLI {
     private $_allowedCmds = [
         'make:controller' => "createController",
         'make:model' => "createModel",
-        'make:table' => "createTable"
+        'make:table' => "createTable",
+        'run:tables' => "runTables"
     ];
 
     /**
@@ -103,6 +104,30 @@ class CLI {
         $tableTemplate = $this->replaceTag("{TableName}", $tableName, $tableTemplate);
 
         $this->createFile("app/tables", $fileName, "sql", $tableTemplate);
+    }
+
+    /**
+     * Erstelle Tabellen
+     */
+    private function runTables() {
+        echo 'Are you sure you want to drop all tables and create them anew? Answer Y/N';
+        $answer = $this->readInput();
+        $answer = strtolower($answer)[0];
+
+        if($answer === 'y') {
+            $files = scandir($this->baseDir.DIRECTORY_SEPARATOR."app/tables");
+
+            foreach($files as $file) {
+                $ext = pathinfo($file, PATHINFO_EXTENSION);
+
+                if($ext === 'sql') {
+                    print $file;
+                }
+            }
+        }
+        else {
+            echo 'Cancelled';
+        }
     }
 
     /**
