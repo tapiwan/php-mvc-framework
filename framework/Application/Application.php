@@ -2,20 +2,15 @@
 
 namespace bitbetrieb\CMS\Application;
 
-use bitbetrieb\CMS\DependencyInjectionContainer\IContainer as IContainer;
 use bitbetrieb\CMS\Config\IConfig as IConfig;
 use bitbetrieb\CMS\FrontController\IFrontController as IFrontController;
+use bitbetrieb\CMS\Template\Template as Template;
 
 /**
  * Class Application
  * @package bitbetrieb\CMS\Application
  */
 class Application {
-    /**
-     * IoC Container der App
-     */
-    private $container;
-
     /**
      * Konfiguration der App
      */
@@ -33,8 +28,7 @@ class Application {
      *
      * @param IFrontController $frontController
      */
-    public function __construct(IContainer $container, IConfig $config, IFrontController $frontController) {
-        $this->container = $container;
+    public function __construct(IConfig $config, IFrontController $frontController) {
         $this->config = $config;
         $this->frontController = $frontController;
     }
@@ -43,11 +37,14 @@ class Application {
      * Starte die App
      */
     public function start() {
-        \bitbetrieb\CMS\Template\Template::setViewDirectory(APP_PATH."/resources/views");
+        //Pfad für Templates einstellen
+        Template::setViewDirectory(APP_PATH.$this->config->get('view-directory'));
 
-        $this->frontController->setControllerNamespacePrefix('\\bitbetrieb\\CMS\\Controller\\');
-        $this->frontController->addExtension(APP_PATH."/app/routes.php");
+        //Front Controller einstellen
+        $this->frontController->setControllerNamespacePrefix($this->config->get('controller-namespace'));
+        $this->frontController->addExtension(APP_PATH.$this->config->get('routes-file'));
 
+        //Front Controller ausführen
         $this->frontController->execute();
     }
 }

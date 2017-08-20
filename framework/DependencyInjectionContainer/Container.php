@@ -12,7 +12,7 @@ class Container implements IContainer {
      *
      * @var array $map Array welches die Komponenten und deren Abhängigkeiten enthält
      */
-    private $map = [];
+    private static $map = [];
 
     /**
      * Wert zur Map hinzufügen
@@ -20,8 +20,8 @@ class Container implements IContainer {
      * @param string $id Der Identifier als ein String, frei wählbar
      * @param mixed $value Der Wert, kann von jeglichem Datentyp sein
      */
-    public function addValue($id, $value) {
-        $this->map[$id] = (object)[
+    public static function addValue($id, $value) {
+        self::$map[$id] = (object)[
             "value" => $value,
             "type" => "value"
         ];
@@ -34,8 +34,8 @@ class Container implements IContainer {
      * @param string $value Der Klassenname des Singletons mit Namespace
      * @param array|null $dependencies Array mit Identifiern anderer Dependencies. Kann null oder ein leeres Array sein.
      */
-    public function addSingleton($id, $value, $dependencies = null) {
-        $this->map[$id] = (object)[
+    public static function addSingleton($id, $value, $dependencies = null) {
+        self::$map[$id] = (object)[
             "value" => $value,
             "type" => "singleton",
             "dependencies" => $dependencies,
@@ -50,8 +50,8 @@ class Container implements IContainer {
      * @param string $value Der Klassenname mit Namespace
      * @param array|null $dependencies Array mit Identifiern anderer Dependencies. Kann null oder ein leeres Array sein.
      */
-    public function addClass($id, $value, $dependencies = null) {
-        $this->map[$id] = (object)[
+    public static function addClass($id, $value, $dependencies = null) {
+        self::$map[$id] = (object)[
             "value" => $value,
             "type" => "class",
             "dependencies" => $dependencies
@@ -63,20 +63,20 @@ class Container implements IContainer {
      *
      * @param string $json JSON String der eingelesen wird
      */
-    public function initializeViaJSON($json) {
+    public static function initializeViaJSON($json) {
         # Read file
         $mapJSON = json_decode($json);
 
         # Add namespaces and base directories from JSON to autoloader
         foreach($mapJSON as $item) {
             if($item->type === 'value') {
-                $this->addValue($item->id, $item->value);
+                self::addValue($item->id, $item->value);
             }
             else if($item->type === 'class') {
-                $this->addClass($item->id, $item->class, $item->dependencies);
+                self::addClass($item->id, $item->class, $item->dependencies);
             }
             else if($item->type === 'singleton') {
-                $this->addSingleton($item->id, $item->class, $item->dependencies);
+                self::addSingleton($item->id, $item->class, $item->dependencies);
             }
         }
     }
@@ -87,8 +87,8 @@ class Container implements IContainer {
      * @param $id
      * @return bool
      */
-    public function has($id) {
-        return isset($this->map[$id]);
+    public static function has($id) {
+        return isset(self::$map[$id]);
     }
 
     /**
@@ -99,13 +99,8 @@ class Container implements IContainer {
      * @return object Enthält entweder den Wert (beim Typ 'values)', eine neue Instanz der Klasse (beim Typ 'class') oder die Singleton Instanz (beim Typ 'singleton') der Dependency
      * @throws \Exception
      */
-    public function get($id) {
-        //Spezielle ID injected den Container selbst
-        if($id === '$this') {
-            return $this;
-        }
-
-        $item = $this->map[$id];
+    public static function get($id) {
+        $item = self::$map[$id];
 
         if(!isset($item)) {
             throw new \Exception("Dependency Injection: item with id '" . $id . "' is not mapped");
@@ -138,7 +133,7 @@ class Container implements IContainer {
                 //Löse Abhängigkeiten auf
                 $arguments = [];
                 foreach($item->dependencies as $dependencyId) {
-                    array_push($arguments, $this->get($dependencyId));
+                    array_push($arguments, self::get($dependencyId));
                 }
 
                 //Erzeuge Instanz mit Abhängigkeiten

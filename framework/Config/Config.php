@@ -15,12 +15,10 @@ class Config implements IConfig {
     private $map = [];
 
     /**
-     * Config constructor.
      *
-     * @param string $pathToConfigFile Pfad zur Config Datei
      */
-    public function __construct($pathToConfigFile) {
-        $this->map = json_decode(file_get_contents(realpath($pathToConfigFile)), true);
+    public function __construct($file) {
+        $this->load($file);
     }
 
     /**
@@ -43,6 +41,15 @@ class Config implements IConfig {
      */
     public function set($key, $value) {
         $this->map[$key] = $value;
+    }
+
+    /**
+     * Konfigurationsdatei laden
+     *
+     * @param $file
+     */
+    private function load($file) {
+        $this->map = json_decode(file_get_contents($file), true);
     }
 }
 

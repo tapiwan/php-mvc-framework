@@ -7,12 +7,12 @@ namespace bitbetrieb\CMS\DependencyInjectionContainer;
  * @package bitbetrieb\CMS\DependencyInjectionContainer
  */
 interface IContainer {
-    public function addValue($id, $value);
-    public function addClass($id, $class, $dependencies);
-    public function addSingleton($id, $class, $dependencies);
-    public function initializeViaJSON($json);
-    public function has($id);
-    public function get($id);
+    public static function addValue($id, $value);
+    public static function addClass($id, $class, $dependencies);
+    public static function addSingleton($id, $class, $dependencies);
+    public static function initializeViaJSON($json);
+    public static function has($id);
+    public static function get($id);
 }
 
 ?>

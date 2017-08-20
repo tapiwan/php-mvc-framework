@@ -4,37 +4,9 @@
     "class": "bitbetrieb\\CMS\\Application\\Application",
     "type": "singleton",
     "dependencies": [
-      "$this",
       "config",
       "front-controller"
     ]
-  },
-  {
-    "id": "front-controller",
-    "class": "bitbetrieb\\CMS\\FrontController\\FrontController",
-    "type": "singleton",
-    "dependencies": [
-      "request",
-      "response",
-      "routes-file"
-    ]
-  },
-  {
-    "id": "request",
-    "class": "bitbetrieb\\CMS\\HTTP\\Request",
-    "type": "singleton",
-    "dependencies": []
-  },
-  {
-    "id": "response",
-    "class": "bitbetrieb\\CMS\\HTTP\\Response",
-    "type": "singleton",
-    "dependencies": []
-  },
-  {
-    "id": "routes-file",
-    "value": "../app/routes.php",
-    "type": "value"
   },
   {
     "id": "config",
@@ -50,19 +22,18 @@
     "type": "value"
   },
   {
-    "id": "controller-namespace",
-    "value": "\\bitbetrieb\\CMS\\Controller\\",
-    "type": "value"
+    "id": "front-controller",
+    "class": "bitbetrieb\\CMS\\FrontController\\FrontController",
+    "type": "singleton",
+    "dependencies": [
+      "request"
+    ]
   },
   {
-    "id": "models-namespace",
-    "value": "\\bitbetrieb\\CMS\\Model\\",
-    "type": "value"
-  },
-  {
-    "id": "view-directory",
-    "value": "../resources/views/",
-    "type": "value"
+    "id": "request",
+    "class": "bitbetrieb\\CMS\\HTTP\\Request",
+    "type": "singleton",
+    "dependencies": []
   },
   {
     "id": "database-handler",

@@ -2,8 +2,9 @@
 
 namespace bitbetrieb\CMS\Model;
 
-use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
+use bitbetrieb\CMS\DatabaseHandler\IDatabaseHandler;
 use bitbetrieb\CMS\DatabaseHandler\QueryObject as QueryObject;
+use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
 
 /**
  * Class Model
@@ -12,6 +13,7 @@ use bitbetrieb\CMS\DatabaseHandler\QueryObject as QueryObject;
 abstract class Model {
     /**
      * Zum Model zugehöriger Tabellenname
+     *
      * Wird automatisch erzeugt, kann aber überschrieben werden
      *
      * @var string
@@ -20,36 +22,56 @@ abstract class Model {
 
     /**
      * Assoziatives Array mit Daten des Models
-     * Wird automatisch befüllt.
+     *
+     * Kann nur folgende Schlüssel enthalten:
+     * $primaryKey, Schlüssel aus $fillable, $createdAt und $updatedAt
      *
      * @var array
      */
     protected $data = [];
 
     /**
-     * Primärschlüssel Spaltenname
+     * Primärschlüssel des Models
+     *
+     * Ist ebenfalls der Spaltenname in der Datenbank-Tabelle
      *
      * @var string
      */
-    protected $primaryKey = 'id';
+    protected $primaryKey;
 
     /**
-     * Spaltennamen der dem Model zugehörigen Tabelle
+     * Fremdschlüssel des Models
+     *
+     * Ist ebenfalls Spaltenname in der Datenbank-Tabelle
+     *
+     * @var string
+     */
+    protected $foreignKey;
+
+    /**
+     * Datenschlüssel des Models
+     *
+     * Jeder Eintrag stellt ein Datum des Models und die zugehörige
+     * Spalte in der Datenbank-Tabelle dar
      *
      * @var array
      */
     protected $fillable = [];
 
     /**
-     * Zeitstempel Spaltennamen
+     * Zeitstempel des Models
+     *
+     * Sind ebenfalls Spaltennamen in der Datenbank-Tabelle
      *
      * @var string
      */
-    protected $createdAt = 'created_at';
-    protected $updatedAt = 'updated_at';
+    protected $createdAt;
+    protected $updatedAt;
 
     /**
-     * Spalten welche nicht als JSON ausgegeben werden sollen
+     * Daten welche nicht als JSON ausgegeben werden
+     *
+     * Versteckt die angegebenen Schlüssel aus $data
      *
      * @var array
      */
@@ -58,24 +80,26 @@ abstract class Model {
     /**
      * Database Handler des Models
      *
-     * @var object
+     * @var IDatabaseHandler
      */
-    protected $dbh;
+    protected $databaseHandler;
 
     /**
      * Model constructor.
      */
-    public function __construct($data = null) {
+    protected function __construct() {
         $this->table = $this->getDefaultTableName();
-        $this->dbh = Container::get('database-handler');
-
-        $this->fill($data);
+        $this->primaryKey = 'id';
+        $this->foreignKey = $this->getDefaultForeignKey();
+        $this->createdAt = 'created_at';
+        $this->updatedAt = 'updated_at';
+        $this->databaseHandler = Container::get('database-handler');
     }
 
     /**
-     * Gib Datum des Models anhand von einem Schlüssel aus, insofern es existiert
+     * Gib Datum des Models anhand von einem Schlüssel aus, insofern er existiert
      *
-     * @param string $key Schlüssel
+     * @param string $key Schlüssel des Datums
      *
      * @return mixed
      */
@@ -92,8 +116,8 @@ abstract class Model {
     /**
      * Füge Datum dem Model hinzu, insofern es existiert
      *
-     * @param string $key Schlüssel
-     * @param mixed $value Wert
+     * @param string $key Schlüssel des Datums
+     * @param mixed $value Wert des Datums
      */
     public function __set($key, $value) {
         if($this->modelHasKey($key)) {
@@ -102,46 +126,48 @@ abstract class Model {
     }
 
     /**
+     * Überprüfe ob ein Datum des Models existiert
+     */
+    public function __isset($key) {
+        return isset($this->data[$key]);
+    }
+
+    /**
+     * Lösche Datum des Models
+     */
+    public function __unset($key) {
+        unset($this->data[$key]);
+    }
+
+    /**
      * Suche Models
      *
      * @return array|bool Wurde ein Model gefunden ist das Model enthalten. Wurden mehrere Models gefunden ist ein Array
      * von Models enthalten
      */
-    public static function find() {
+    protected static function find() {
         $query = new QueryObject();
         $static = new static();
         $criteria = func_get_args();
-        $return = [];
+        $return = false;
 
-        $query->selectFrom('*', $static->table);
+        $query->selectFrom('*', $static->table)->addCriteria($criteria);
 
-        foreach($criteria as $criterion) {
-            $query->addCriteria($criterion[0], $criterion[1], $criterion[2], $criterion[3]);
-        }
+        $result = Container::get('database-handler')->query($query);
 
-        $result = Container::get('database-handler')->query($query, get_class($static));
-
-        if($result->success) {
-            if(count($result->data) === 1) {
+        if($result->getSuccess()) {
+            if(count($result->getData()) === 1) {
                 //Einzelnes Ergebnis gefunden
-                $return = $static->fill($result->data[0]);
+                $return = $static->fill($result->getData()[0]);
             }
-            else if(count($result->data) > 1) {
+            else if(count($result->getData()) > 1) {
                 //Mehrere Ergebnisse gefunden
                 $return = [];
 
-                foreach($result->data as $model) {
+                foreach($result->getData() as $model) {
                     $return[] = (new static())->fill($model);
                 }
             }
-            else {
-                //Keine Ergebnisse gefunden
-                $return = false;
-            }
-        }
-        else {
-            //Keine Ergebnisse gefunden
-            $return = false;
         }
 
         return $return;
@@ -150,26 +176,29 @@ abstract class Model {
     /**
      * Speichere Model
      */
-    public function save() {
-        $result = $this->dbh->query($this->buildSaveQuery());
+    protected function save() {
+        $result = $this->databaseHandler->query($this->buildSaveQuery());
 
-        //Bei erstmaligem Speichern, lies den erzeugten Primärschlüssel aus
-        if($result->insertId != 0) {
-            $this->__set($this->primaryKey, $result->insertId);
+        //Bei erstmaligem Speichern:
+        //lies den erzeugten Primärschlüssel aus und setze Datum des Models
+        if($result->getLastInsertId() != 0) {
+            $this->__set($this->primaryKey, $result->getLastInsertId());
         }
     }
 
     /**
      * Lösche Model
      */
-    public function delete() {
-       $this->dbh->query($this->buildDeleteQuery());
+    protected function delete() {
+       $result = $this->databaseHandler->query($this->buildDeleteQuery());
+
+       return $result->getSuccess();
     }
 
     /**
      * Konstruiere den SQL Query zum Speichern
      */
-    private function buildSaveQuery() {
+    protected function buildSaveQuery() {
         $query = new QueryObject();
 
         if(isset($this->data[$this->primaryKey])) {
@@ -187,7 +216,7 @@ abstract class Model {
     /**
      * Konstruiere den SQL Query zum Löschen
      */
-    private function buildDeleteQuery() {
+    protected function buildDeleteQuery() {
         $query = new QueryObject();
 
         if(isset($this->data[$this->primaryKey])) {
@@ -200,7 +229,7 @@ abstract class Model {
     /**
      * Lade Model Daten
      */
-    private function fill($model) {
+    protected function fill($model) {
         //Wenn das Model neu ist setze Zeitstempel
         $this->__set($this->createdAt, $this->getTimestamp());
 
@@ -234,15 +263,15 @@ abstract class Model {
     }
 
     /**
-     * Erzeuge einen Tabellennamen anhand des Klassennamens nach Konventionen
+     * Gib den Klassennamen ohne Namespace zurück
      *
-     * Somit wird z.B. "bitbetrieb\CMS\Model\User" umgewandelt zu "users"
+     * Somit wird z.B. "bitbetrieb\CMS\Model\User" => "User"
      *
      * @param $class
      * @return string
      */
-    private function getTableNameFromClassName($class) {
-        return strtolower(array_pop(explode("\\", $class))) . "s";
+    private function getClassNameWithoutNS($class) {
+        return strtolower(array_pop(explode("\\", $class)));
     }
 
     /**
@@ -251,7 +280,16 @@ abstract class Model {
      * @return string
      */
     private function getDefaultTableName() {
-        return $this->getTableNameFromClassName(get_class($this));
+        return $this->getClassNameWithoutNS(get_class($this))."s";
+    }
+
+    /**
+     * Gibt den Standard Spaltennamen des Fremdschlüssels zurück
+     *
+     * @return string
+     */
+    private function getDefaultForeignKey() {
+        return $this->getClassNameWithoutNS(get_class($this))."_id";
     }
 
     /**

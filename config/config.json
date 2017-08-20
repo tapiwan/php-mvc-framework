@@ -3,5 +3,8 @@
   "db-user": "shopsystem",
   "db-name": "shopsystem",
   "db-pass": "t4p1@Shop.!",
-  "secret": "2PTe9kW5GU3EHsp54tuMQeTVMlbT0WQco57NNazBn6A="
+  "secret": "2PTe9kW5GU3EHsp54tuMQeTVMlbT0WQco57NNazBn6A=",
+  "view-directory": "/resources/views",
+  "controller-namespace": "\\bitbetrieb\\CMS\\Controller\\",
+  "routes-file": "/app/routes.php"
 }
