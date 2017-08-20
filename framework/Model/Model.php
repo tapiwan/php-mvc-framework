@@ -87,13 +87,16 @@ abstract class Model {
     /**
      * Model constructor.
      */
-    protected function __construct() {
+    public function __construct() {
         $this->table = $this->getDefaultTableName();
         $this->primaryKey = 'id';
         $this->foreignKey = $this->getDefaultForeignKey();
         $this->createdAt = 'created_at';
         $this->updatedAt = 'updated_at';
         $this->databaseHandler = Container::get('database-handler');
+
+        //Zeitstempel setzen
+        $this->__set($this->createdAt, $this->getTimestamp());
     }
 
     /**
@@ -145,7 +148,7 @@ abstract class Model {
      * @return array|bool Wurde ein Model gefunden ist das Model enthalten. Wurden mehrere Models gefunden ist ein Array
      * von Models enthalten
      */
-    protected static function find() {
+    public static function find() {
         $query = new QueryObject();
         $static = new static();
         $criteria = func_get_args();
@@ -176,7 +179,7 @@ abstract class Model {
     /**
      * Speichere Model
      */
-    protected function save() {
+    public function save() {
         $result = $this->databaseHandler->query($this->buildSaveQuery());
 
         //Bei erstmaligem Speichern:
@@ -189,7 +192,7 @@ abstract class Model {
     /**
      * Lösche Model
      */
-    protected function delete() {
+    public function delete() {
        $result = $this->databaseHandler->query($this->buildDeleteQuery());
 
        return $result->getSuccess();
@@ -198,7 +201,7 @@ abstract class Model {
     /**
      * Konstruiere den SQL Query zum Speichern
      */
-    protected function buildSaveQuery() {
+    private function buildSaveQuery() {
         $query = new QueryObject();
 
         if(isset($this->data[$this->primaryKey])) {
@@ -216,7 +219,7 @@ abstract class Model {
     /**
      * Konstruiere den SQL Query zum Löschen
      */
-    protected function buildDeleteQuery() {
+    private function buildDeleteQuery() {
         $query = new QueryObject();
 
         if(isset($this->data[$this->primaryKey])) {
@@ -229,10 +232,7 @@ abstract class Model {
     /**
      * Lade Model Daten
      */
-    protected function fill($model) {
-        //Wenn das Model neu ist setze Zeitstempel
-        $this->__set($this->createdAt, $this->getTimestamp());
-
+    public function fill($model) {
         //Wenn das Model geladen wird befülle Daten des Models
         if(!is_null($model) && (is_array($model) || is_object($model))) {
             foreach($model as $key => $value) {

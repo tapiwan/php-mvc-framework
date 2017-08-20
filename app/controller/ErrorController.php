@@ -14,13 +14,17 @@ class ErrorController extends Controller {
     /**
      * Index
      *
-     * @param Request $request
+     * @param Request $req
      */
     public function index(Request $req) {
-        $response = new Response();
-        $response->setStatus(404);
-        $response->setBody("Error");
-        $response->send();
+        $tpl = new Template('error.php', [
+            "title" => "Error"
+        ]);
+
+        $res = new Response();
+        $res->setStatus(404)
+            ->setBody($tpl->render())
+            ->send();
     }
 }
 

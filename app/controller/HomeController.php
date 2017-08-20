@@ -14,16 +14,16 @@ class HomeController extends Controller {
     /**
      * Index
      *
-     * @param Request $request
+     * @param Request $req
      */
     public function index(Request $req) {
         $tpl = new Template('index.php', [
         	   "title" => "Home"
         ]);
 
-        $response = new Response();
-        $response->setBody($tpl->render());
-        $response->send();
+        $res = new Response();
+        $res->setBody($tpl->render())
+            ->send();
     }
 }
 

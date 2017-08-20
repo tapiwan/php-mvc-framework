@@ -1,13 +1,13 @@
 <?php $this->extend('layouts/base.php'); ?>
 
 <?php $this->block('header'); ?>
-<header>INDEX HEADER</header>
+<header>ERROR HEADER</header>
 <?php $this->endblock(); ?>
 
 <?php $this->block('content'); ?>
-<main>INDEX CONTENT</main>
+<main>ERROR CONTENT</main>
 <?php $this->endblock(); ?>
 
 <?php $this->block('footer'); ?>
-<footer>INDEX FOOTER</footer>
+<footer>ERROR FOOTER</footer>
 <?php $this->endblock(); ?>
