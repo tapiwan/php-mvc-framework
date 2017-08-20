@@ -28,9 +28,16 @@ class Config implements IConfig {
      * @return bool|mixed
      */
     public function get($key) {
-        if(!isset($this->map[$key])) return false;
+        $keyStack = explode('/', $key);
+        $current = &$this->map;
 
-        return $this->map[$key];
+        foreach($keyStack as $accessor) {
+            if(!isset($current[$accessor])) return false;
+
+            $current = &$current[$accessor];
+        }
+
+        return $current;
     }
 
     /**

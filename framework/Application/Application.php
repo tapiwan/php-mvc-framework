@@ -38,11 +38,11 @@ class Application {
      */
     public function start() {
         //Pfad für Templates einstellen
-        Template::setViewDirectory(APP_PATH.$this->config->get('view-directory'));
+        Template::setViewDirectory(APP_PATH.$this->config->get('directories/views'));
 
         //Front Controller einstellen
-        $this->frontController->setControllerNamespacePrefix($this->config->get('controller-namespace'));
-        $this->frontController->addExtension(APP_PATH.$this->config->get('routes-file'));
+        $this->frontController->setControllerNamespacePrefix($this->config->get('controller/namespace'));
+        $this->frontController->addExtension(APP_PATH.$this->config->get('files/routes'));
 
         //Front Controller ausführen
         $this->frontController->execute();

@@ -46,10 +46,10 @@ class DatabaseHandler implements IDatabaseHandler {
      */
     public function __construct(IConfig $config) {
         $this->config = $config;
-        $this->host = $this->config->get('db-host');
-        $this->user = $this->config->get('db-user');
-        $this->pass = $this->config->get('db-pass');
-        $this->name = $this->config->get('db-name');
+        $this->host = $this->config->get('database/host');
+        $this->user = $this->config->get('database/user');
+        $this->pass = $this->config->get('database/pass');
+        $this->name = $this->config->get('database/name');
 
         $this->connect();
     }
