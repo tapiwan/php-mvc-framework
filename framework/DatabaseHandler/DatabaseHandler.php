@@ -2,7 +2,7 @@
 
 namespace bitbetrieb\CMS\DatabaseHandler;
 
-use bitbetrieb\CMS\Config\IConfig as IConfig;
+use bitbetrieb\CMS\Config\IConfig;
 
 /**
  * Class MySqlDatabaseHandler

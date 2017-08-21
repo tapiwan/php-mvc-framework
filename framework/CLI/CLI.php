@@ -115,7 +115,7 @@ class CLI {
         $answer = strtolower($answer)[0];
 
         if($answer === 'y') {
-            $files = scandir($this->baseDir.DIRECTORY_SEPARATOR."app/tables");
+            $files = scandir($this->baseDir.DIRECTORY_SEPARATOR."app/tables", SCANDIR_SORT_ASCENDING);
             $sql = "";
 
             foreach($files as $file) {
