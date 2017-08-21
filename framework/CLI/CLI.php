@@ -14,7 +14,7 @@ class CLI {
         'make:controller' => "createController",
         'make:model' => "createModel",
         'make:table' => "createTable",
-        'run:tables' => "runTables"
+        'merge:tables' => "mergeTables"
     ];
 
     /**
@@ -107,23 +107,26 @@ class CLI {
     }
 
     /**
-     * Erstelle Tabellen
+     * Erstelle gesamte SQL-Datei
      */
-    private function runTables() {
-        echo 'Are you sure you want to drop all tables and create them anew? Answer Y/N';
+    private function mergeTables() {
+        echo 'Do you want to create a single SQL file out of the individual table files? Answer Y/N: ';
         $answer = $this->readInput();
         $answer = strtolower($answer)[0];
 
         if($answer === 'y') {
             $files = scandir($this->baseDir.DIRECTORY_SEPARATOR."app/tables");
+            $sql = "";
 
             foreach($files as $file) {
                 $ext = pathinfo($file, PATHINFO_EXTENSION);
 
                 if($ext === 'sql') {
-                    print $file;
+                    $sql .= file_get_contents($this->baseDir.DIRECTORY_SEPARATOR."app/tables".DIRECTORY_SEPARATOR.$file)."\n";
                 }
             }
+
+            $this->createFile("app/tables", "schema", "sql", $sql, false);
         }
         else {
             echo 'Cancelled';
@@ -148,16 +151,16 @@ class CLI {
      * @param $name
      * @param $content
      */
-    private function createFile($directory, $name, $extension, $content) {
+    private function createFile($directory, $name, $extension, $content, $dontOverwrite = true) {
         $dir = str_replace("/", DIRECTORY_SEPARATOR, $directory);
         $dir = str_replace("\\", DIRECTORY_SEPARATOR, $dir);;
 
         $path = $this->baseDir . DIRECTORY_SEPARATOR . $dir . DIRECTORY_SEPARATOR . $name.".".$extension;
 
-        if(file_exists($path)) {
+        if(file_exists($path) && $dontOverwrite) {
             echo "Couldn't create '$name' because file already exists";
         } else {
-            $handle = fopen($path, "w");
+            $handle = fopen($path, "w+");
             fwrite($handle, $content);
             fclose($handle);
 

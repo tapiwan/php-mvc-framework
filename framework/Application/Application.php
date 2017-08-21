@@ -2,9 +2,9 @@
 
 namespace bitbetrieb\CMS\Application;
 
-use bitbetrieb\CMS\Config\IConfig as IConfig;
-use bitbetrieb\CMS\FrontController\IFrontController as IFrontController;
-use bitbetrieb\CMS\Template\Template as Template;
+use bitbetrieb\CMS\Config\IConfig;
+use bitbetrieb\CMS\FrontController\IFrontController;
+use bitbetrieb\CMS\Template\Template;
 
 /**
  * Class Application
@@ -13,6 +13,8 @@ use bitbetrieb\CMS\Template\Template as Template;
 class Application {
     /**
      * Konfiguration der App
+     *
+     * @var IConfig
      */
     private $config;
 
@@ -26,6 +28,7 @@ class Application {
     /**
      * Application constructor.
      *
+     * @param IConfig $config
      * @param IFrontController $frontController
      */
     public function __construct(IConfig $config, IFrontController $frontController) {
@@ -40,8 +43,10 @@ class Application {
         //Pfad für Templates einstellen
         Template::setViewDirectory(APP_PATH.$this->config->get('directories/views'));
 
-        //Front Controller einstellen
+        //Front Controller den Namespace der Controller mitteilen
         $this->frontController->setControllerNamespacePrefix($this->config->get('controller/namespace'));
+
+        //Front Controller Routen laden
         $this->frontController->addExtension(APP_PATH.$this->config->get('files/routes'));
 
         //Front Controller ausführen

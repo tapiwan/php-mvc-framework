@@ -2,8 +2,8 @@
 
 require_once(APP_PATH."/framework/Autoloader/Autoloader.php");
 
-use bitbetrieb\CMS\Autoloader\Autoloader as Autoloader;
-use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
+use bitbetrieb\CMS\Autoloader\Autoloader;
+use bitbetrieb\CMS\DependencyInjectionContainer\Container;
 
 /*
 |--------------------------------------------------------------------------
