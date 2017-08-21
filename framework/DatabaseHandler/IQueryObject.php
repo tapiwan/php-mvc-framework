@@ -10,7 +10,8 @@ interface IQueryObject {
     public function where($key, $operator, $value);
     public function _and($key, $operator, $value);
     public function _or($key, $operator, $value);
-    public function addCriteria($cmd, $key, $operator, $value);
+    public function addCriterion($cmd, $key, $operator, $value);
+    public function addCriteria(Array $criteria);
     public function limit($amount);
     public function assemble();
 }

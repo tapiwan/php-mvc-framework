@@ -129,8 +129,8 @@ class Response implements IResponse {
     /**
      * Umleiten
      */
-    public function redirect($url) {
-        $this->addHeader('Location', $url);
+    public function redirect($location) {
+        $this->addHeader("Location", $location);
 
         $this->send();
     }

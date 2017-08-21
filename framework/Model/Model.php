@@ -2,322 +2,343 @@
 
 namespace bitbetrieb\CMS\Model;
 
-use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
+use bitbetrieb\CMS\DatabaseHandler\IDatabaseHandler;
 use bitbetrieb\CMS\DatabaseHandler\QueryObject as QueryObject;
+use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
 
 /**
  * Class Model
  * @package bitbetrieb\CMS\Model
  */
 abstract class Model {
-	/**
-	 * Zum Model zugehöriger Tabellenname
-	 * Wird automatisch erzeugt, kann aber überschrieben werden
-	 *
-	 * @var string
-	 */
-	protected $table;
+    /**
+     * Zum Model zugehöriger Tabellenname
+     *
+     * Wird automatisch erzeugt, kann aber überschrieben werden
+     *
+     * @var string
+     */
+    protected $table;
 
-	/**
-	 * Assoziatives Array mit Daten des Models
-	 * Wird automatisch befüllt.
-	 *
-	 * @var array
-	 */
-	protected $data = [];
+    /**
+     * Assoziatives Array mit Daten des Models
+     *
+     * Kann nur folgende Schlüssel enthalten:
+     * $primaryKey, Schlüssel aus $fillable, $createdAt und $updatedAt
+     *
+     * @var array
+     */
+    protected $data = [];
 
-	/**
-	 * Primärschlüssel Spaltenname
-	 *
-	 * @var string
-	 */
-	protected $primaryKey = 'id';
+    /**
+     * Primärschlüssel des Models
+     *
+     * Ist ebenfalls der Spaltenname in der Datenbank-Tabelle
+     *
+     * @var string
+     */
+    protected $primaryKey;
 
-	/**
-	 * Spaltennamen der dem Model zugehörigen Tabelle
-	 *
-	 * @var array
-	 */
-	protected $fillable = [];
+    /**
+     * Fremdschlüssel des Models
+     *
+     * Ist ebenfalls Spaltenname in der Datenbank-Tabelle
+     *
+     * @var string
+     */
+    protected $foreignKey;
 
-	/**
-	 * Zeitstempel Spaltennamen
-	 *
-	 * @var string
-	 */
-	protected $createdAt = 'created_at';
-	protected $updatedAt = 'updated_at';
+    /**
+     * Datenschlüssel des Models
+     *
+     * Jeder Eintrag stellt ein Datum des Models und die zugehörige
+     * Spalte in der Datenbank-Tabelle dar
+     *
+     * @var array
+     */
+    protected $fillable = [];
 
-	/**
-	 * Spalten welche nicht als JSON ausgegeben werden sollen
-	 *
-	 * @var array
-	 */
-	protected $hidden = [];
+    /**
+     * Zeitstempel des Models
+     *
+     * Sind ebenfalls Spaltennamen in der Datenbank-Tabelle
+     *
+     * @var string
+     */
+    protected $createdAt;
+    protected $updatedAt;
 
-	/**
-	 * Database Handler der Models
-	 *
-	 * @var object
-	 */
-	private $databaseHandler;
+    /**
+     * Daten welche nicht als JSON ausgegeben werden
+     *
+     * Versteckt die angegebenen Schlüssel aus $data
+     *
+     * @var array
+     */
+    protected $hidden = [];
 
-	/**
-	 * Model constructor.
-	 */
-	public function __construct($data = null) {
-		$this->table = $this->getDefaultTableName();
-		$this->databaseHandler = Container::get('database-handler');
+    /**
+     * Database Handler des Models
+     *
+     * @var IDatabaseHandler
+     */
+    protected $databaseHandler;
 
-		$this->fill($data);
-	}
+    /**
+     * Model constructor.
+     */
+    public function __construct() {
+        $this->table = $this->getDefaultTableName();
+        $this->primaryKey = 'id';
+        $this->foreignKey = $this->getDefaultForeignKey();
+        $this->createdAt = 'created_at';
+        $this->updatedAt = 'updated_at';
+        $this->databaseHandler = Container::get('database-handler');
 
-	/**
-	 * Gib Datum des Models anhand von einem Schlüssel aus, insofern es existiert
-	 *
-	 * @param string $key Schlüssel
-	 *
-	 * @return mixed
-	 */
-	public function __get($key) {
-		$result = false;
+        //Zeitstempel setzen
+        $this->__set($this->createdAt, $this->getTimestamp());
+    }
 
-		if ($this->modelHasKey($key)) {
-			$result = $this->data[$key];
-		}
+    /**
+     * Gib Datum des Models anhand von einem Schlüssel aus, insofern er existiert
+     *
+     * @param string $key Schlüssel des Datums
+     *
+     * @return mixed
+     */
+    public function __get($key) {
+        $result = false;
 
-		return $result;
-	}
+        if($this->modelHasKey($key)) {
+            $result = $this->data[$key];
+        }
 
-	/**
-	 * Füge Datum dem Model hinzu, insofern es existiert
-	 *
-	 * @param string $key Schlüssel
-	 * @param mixed $value Wert
-	 */
-	public function __set($key, $value) {
-		if ($this->modelHasKey($key)) {
-			$this->data[$key] = $value;
-		}
-	}
+        return $result;
+    }
 
-	/**
-	 * Magische Isset Methode für Datum des Models
-	 *
-	 * @param $key
-	 * @return bool
-	 */
-	public function __isset($key) {
-		return isset($this->data[$key]);
-	}
+    /**
+     * Füge Datum dem Model hinzu, insofern es existiert
+     *
+     * @param string $key Schlüssel des Datums
+     * @param mixed $value Wert des Datums
+     */
+    public function __set($key, $value) {
+        if($this->modelHasKey($key)) {
+            $this->data[$key] = $value;
+        }
+    }
 
-	/**
-	 * Magische Unset Methode für Datum des Models
-	 *
-	 * @param $key
-	 */
-	public function __unset($key) {
-		unset($this->data[$key]);
-	}
+    /**
+     * Überprüfe ob ein Datum des Models existiert
+     */
+    public function __isset($key) {
+        return isset($this->data[$key]);
+    }
 
-	/**
-	 * Suche Models
-	 *
-	 * @return array|bool Wurde ein Model gefunden ist das Model enthalten. Wurden mehrere Models gefunden ist ein Array
-	 * von Models enthalten
-	 */
-	public static function find() {
-		$query    = new QueryObject();
-		$static   = new static();
-		$criteria = func_get_args();
-		$return   = [];
+    /**
+     * Lösche Datum des Models
+     */
+    public function __unset($key) {
+        unset($this->data[$key]);
+    }
 
-		$query->selectFrom('*', $static->table);
+    /**
+     * Suche Models
+     *
+     * @return array|bool Wurde ein Model gefunden ist das Model enthalten. Wurden mehrere Models gefunden ist ein Array
+     * von Models enthalten
+     */
+    public static function find() {
+        $query = new QueryObject();
+        $static = new static();
+        $criteria = func_get_args();
+        $return = false;
 
-		foreach ($criteria as $criterion) {
-			$query->addCriteria($criterion[0], $criterion[1], $criterion[2], $criterion[3]);
-		}
+        $query->selectFrom('*', $static->table)->addCriteria($criteria);
 
-		$result = Container::get('database-handler')->query($query, get_class($static));
+        $result = Container::get('database-handler')->query($query);
 
-		if ($result->success) {
-			if (count($result->data) === 1) {
-				//Einzelnes Ergebnis gefunden
-				$return = $static->fill($result->data[0]);
-			} else if (count($result->data) > 1) {
-				//Mehrere Ergebnisse gefunden
-				$return = [];
+        if($result->getSuccess()) {
+            if(count($result->getData()) === 1) {
+                //Einzelnes Ergebnis gefunden
+                $return = $static->fill($result->getData()[0]);
+            }
+            else if(count($result->getData()) > 1) {
+                //Mehrere Ergebnisse gefunden
+                $return = [];
 
-				foreach ($result->data as $model) {
-					$return[] = (new static())->fill($model);
-				}
-			} else {
-				//Keine Ergebnisse gefunden
-				$return = false;
-			}
-		} else {
-			//Keine Ergebnisse gefunden
-			$return = false;
-		}
+                foreach($result->getData() as $model) {
+                    $return[] = (new static())->fill($model);
+                }
+            }
+        }
 
-		return $return;
-	}
+        return $return;
+    }
 
-	/**
-	 * Speichere Model
-	 */
-	public function save() {
-		$result = $this->databaseHandler->query($this->buildSaveQuery());
+    /**
+     * Speichere Model
+     */
+    public function save() {
+        $result = $this->databaseHandler->query($this->buildSaveQuery());
 
-		//Bei erstmaligem Speichern, lies den erzeugten Primärschlüssel aus
-		if ($result->insertId != 0) {
-			$this->__set($this->primaryKey, $result->insertId);
-		}
-	}
+        //Bei erstmaligem Speichern:
+        //lies den erzeugten Primärschlüssel aus und setze Datum des Models
+        if($result->getLastInsertId() != 0) {
+            $this->__set($this->primaryKey, $result->getLastInsertId());
+        }
+    }
 
-	/**
-	 * Lösche Model
-	 */
-	public function delete() {
-		$this->databaseHandler->query($this->buildDeleteQuery());
-	}
+    /**
+     * Lösche Model
+     */
+    public function delete() {
+       $result = $this->databaseHandler->query($this->buildDeleteQuery());
 
-	/**
-	 * Konstruiere den SQL Query zum Speichern
-	 */
-	private function buildSaveQuery() {
-		$query = new QueryObject();
+       return $result->getSuccess();
+    }
 
-		if (isset($this->data[$this->primaryKey])) {
-			$this->__set($this->updatedAt, $this->getTimestamp());
+    /**
+     * Konstruiere den SQL Query zum Speichern
+     */
+    private function buildSaveQuery() {
+        $query = new QueryObject();
 
-			$query->update($this->getTable(), $this->getData())
-			      ->where($this->primaryKey, '=', $this->getPrimaryKeyValue());
-		} else {
-			$query->insertInto($this->getTable(), $this->getData());
-		}
+        if(isset($this->data[$this->primaryKey])) {
+            $this->__set($this->updatedAt, $this->getTimestamp());
 
-		return $query;
-	}
+            $query->update($this->getTable(), $this->getData())->where($this->primaryKey, '=', $this->getPrimaryKeyValue());
+        }
+        else {
+            $query->insertInto($this->getTable(), $this->getData());
+        }
 
-	/**
-	 * Konstruiere den SQL Query zum Löschen
-	 */
-	private function buildDeleteQuery() {
-		$query = new QueryObject();
+        return $query;
+    }
 
-		if (isset($this->data[$this->primaryKey])) {
-			$query->deleteFrom($this->getTable())
-			      ->where($this->primaryKey, '=', $this->getPrimaryKeyValue());
-		}
+    /**
+     * Konstruiere den SQL Query zum Löschen
+     */
+    private function buildDeleteQuery() {
+        $query = new QueryObject();
 
-		return $query;
-	}
+        if(isset($this->data[$this->primaryKey])) {
+            $query->deleteFrom($this->getTable())->where($this->primaryKey, '=', $this->getPrimaryKeyValue());
+        }
 
-	/**
-	 * Lade Model Daten
-	 */
-	private function fill($model) {
-		//Wenn das Model neu ist setze Zeitstempel
-		$this->__set($this->createdAt, $this->getTimestamp());
+        return $query;
+    }
 
-		//Wenn das Model geladen wird befülle Daten des Models
-		if (!is_null($model) && (is_array($model) || is_object($model))) {
-			foreach ($model as $key => $value) {
-				$val = empty($value) ? null : $value;
+    /**
+     * Lade Model Daten
+     */
+    public function fill($model) {
+        //Wenn das Model geladen wird befülle Daten des Models
+        if(!is_null($model) && (is_array($model) || is_object($model))) {
+            foreach($model as $key => $value) {
+                $val = empty($value) ? null : $value;
 
-				$this->__set($key, $val);
-			}
-		}
+                $this->__set($key, $val);
+            }
+        }
 
-		return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * Überprüft ob das Model den Schlüssel enthält
-	 *
-	 * @param string $key Zu überprüfender Schlüssel
-	 *
-	 * @return bool Enthält true wenn der Schlüssel existiert und false wenn nicht
-	 */
-	private function modelHasKey($key) {
-		$hasKey = false;
+    /**
+     * Überprüft ob das Model den Schlüssel enthält
+     *
+     * @param string $key Zu überprüfender Schlüssel
+     *
+     * @return bool Enthält true wenn der Schlüssel existiert und false wenn nicht
+     */
+    private function modelHasKey($key) {
+        $hasKey = false;
 
-		if (in_array($key, $this->fillable) || $key === $this->primaryKey || $key === $this->createdAt || $key === $this->updatedAt) {
-			$hasKey = true;
-		}
+        if(in_array($key, $this->fillable) || $key === $this->primaryKey || $key === $this->createdAt || $key === $this->updatedAt) {
+            $hasKey = true;
+        }
 
-		return $hasKey;
-	}
+        return $hasKey;
+    }
 
-	/**
-	 * Erzeuge einen Tabellennamen anhand des Klassennamens nach Konventionen
-	 *
-	 * Somit wird z.B. "bitbetrieb\CMS\Model\User" umgewandelt zu "users"
-	 *
-	 * @param $class
-	 * @return string
-	 */
-	private function getTableNameFromClassName($class) {
-		return strtolower(array_pop(explode("\\", $class)))."s";
-	}
+    /**
+     * Gib den Klassennamen ohne Namespace zurück
+     *
+     * Somit wird z.B. "bitbetrieb\CMS\Model\User" => "User"
+     *
+     * @param $class
+     * @return string
+     */
+    private function getClassNameWithoutNS($class) {
+        return strtolower(array_pop(explode("\\", $class)));
+    }
 
-	/**
-	 * Gibt den Standard Tabellennamen zurückgeben
-	 *
-	 * @return string
-	 */
-	private function getDefaultTableName() {
-		return $this->getTableNameFromClassName(get_class($this));
-	}
+    /**
+     * Gibt den Standard Tabellennamen zurückgeben
+     *
+     * @return string
+     */
+    private function getDefaultTableName() {
+        return $this->getClassNameWithoutNS(get_class($this))."s";
+    }
 
-	/**
-	 * Gibt Data zurück
-	 *
-	 * @param bool $skipPrimaryKey Entscheidet ob der Primärschlüssel übersprungen werden soll
-	 *
-	 * @return array Assoziatives Array mit den Daten des Models
-	 */
-	private function getData($skipPrimaryKey = true) {
-		$data = [];
+    /**
+     * Gibt den Standard Spaltennamen des Fremdschlüssels zurück
+     *
+     * @return string
+     */
+    private function getDefaultForeignKey() {
+        return $this->getClassNameWithoutNS(get_class($this))."_id";
+    }
 
-		foreach ($this->data as $key => $value) {
-			if ($skipPrimaryKey && $key == $this->primaryKey) {
-				continue;
-			}
+    /**
+     * Gibt Data zurück
+     *
+     * @param bool $skipPrimaryKey Entscheidet ob der Primärschlüssel übersprungen werden soll
+     *
+     * @return array Assoziatives Array mit den Daten des Models
+     */
+    private function getData($skipPrimaryKey = true) {
+        $data = [];
 
-			$data[$key] = $value;
-		}
+        foreach($this->data as $key => $value) {
+            if($skipPrimaryKey && $key == $this->primaryKey) {
+                    continue;
+            }
 
-		return $data;
-	}
+            $data[$key] = $value;
+        }
 
-	/**
-	 * Gibt einen Zeitstempel im SQL Format zurück
-	 *
-	 * @return false|string
-	 */
-	private function getTimestamp() {
-		return date("Y-m-d H:i:s");
-	}
+        return $data;
+    }
 
-	/**
-	 * Gibt den Wert des Primary Keys zurück
-	 *
-	 * @return mixed
-	 */
-	private function getPrimaryKeyValue() {
-		return $this->data[$this->primaryKey];
-	}
+    /**
+     * Gibt einen Zeitstempel im SQL Format zurück
+     *
+     * @return false|string
+     */
+    private function getTimestamp() {
+        return date("Y-m-d H:i:s");
+    }
 
-	/**
-	 * Gibt den Tabellenname zurück
-	 *
-	 * @return string
-	 */
-	public function getTable() {
-		return $this->table;
-	}
+    /**
+     * Gibt den Wert des Primary Keys zurück
+     *
+     * @return mixed
+     */
+    private function getPrimaryKeyValue() {
+        return $this->data[$this->primaryKey];
+    }
+
+    /**
+     * Gibt den Tabellenname zurück
+     *
+     * @return string
+     */
+    public function getTable() {
+        return $this->table;
+    }
 }
 
 ?>

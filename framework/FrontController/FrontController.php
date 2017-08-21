@@ -19,13 +19,6 @@ class FrontController implements IFrontController {
     private $request;
 
     /**
-     * Response Object
-     *
-     * @var IResponse
-     */
-    private $response;
-
-    /**
      * Routen Array
      *
      * @var array
@@ -40,16 +33,105 @@ class FrontController implements IFrontController {
     private $errorHandler;
 
     /**
+     * Extensions Array
+     *
+     * @var array
+     */
+    private $extensions = [];
+
+    /**
+     * Flag ob Extensions geladen wurden
+     */
+    private $extensionsLoaded = false;
+
+    /**
+     * Parameter welche an alle Routen übergeben werden sollen
+     */
+    private $routeParameters = [];
+
+    /**
+     * Namespace Prefix der Controller, optional
+     *
+     * @var string
+     */
+    private $controllerNamespacePrefix = "";
+
+    /**
      * FrontController constructor.
      *
      * @param IRequest $request
-     * @param IResponse $response
-     * @param $routesFile
      */
-    public function __construct(IRequest $request, IResponse $response, $routesFile) {
+    public function __construct(IRequest $request) {
         $this->request = $request;
-        $this->response = $response;
-        $this->loadRoutes($routesFile);
+    }
+
+    /**
+     * Fügt dem Front Controller eine Extension hinzu
+     *
+     * @param $file
+     */
+    public function addExtension($file) {
+        $this->extensions[] = $file;
+    }
+
+    /**
+     * Lädt eine Extension
+     *
+     * @param string $file Pfad zur Extension Datei
+     */
+    public function loadExtension($file) {
+        require_once $file;
+    }
+
+    /**
+     * Lädt alle Extensions des Front Controllers
+     */
+    public function loadExtensions() {
+        if(count($this->extensions) > 0 && !$this->extensionsLoaded) {
+            foreach($this->extensions as $extension) {
+                if(file_exists($extension)) {
+                    $this->loadExtension($extension);
+                }
+            }
+        }
+
+        $this->extensionsLoaded = true;
+    }
+
+    /**
+     * Fügt einen Routen Parameter hinzu
+     *
+     * @param mixed $parameter
+     */
+    public function addRouteParameter($parameter) {
+        $this->routeParameters[] = $parameter;
+    }
+
+    /**
+     * Gibt die Routen Parameter zurück
+     *
+     * @return array
+     */
+    public function getRouteParameters() {
+        return $this->routeParameters;
+    }
+
+    /**
+     * Setzt den Namespace der Controller
+     *
+     * @param string $controllerNamespacePrefix
+     */
+    public function setControllerNamespacePrefix($controllerNamespacePrefix) {
+        $this->controllerNamespacePrefix = $controllerNamespacePrefix;
+    }
+
+    /**
+     * Gibt den Namespace Prefix der Controller zurück
+     *
+     * @return string
+     */
+    public function getControllerNamespacePrefix() {
+        return $this->controllerNamespacePrefix;
     }
 
     /**
@@ -100,7 +182,7 @@ class FrontController implements IFrontController {
      * @param string $callable Zeichenkette in Form von "controller@funktion"
      */
     public function addRoute($httpMethod, $route, $callable) {
-        $this->routes[] = new Route($route, $httpMethod, $callable);
+        $this->routes[] = new Route($route, $httpMethod, $this->getPrefixedCallable($callable));
     }
 
     /**
@@ -109,7 +191,17 @@ class FrontController implements IFrontController {
      * @param string $callable Zeichenkette in Form von "controller@funktion"
      */
     public function setErrorHandler($callable) {
-        $this->errorHandler = new Route(null, null, $callable);
+        $this->errorHandler = new Route(null, null, $this->getPrefixedCallable($callable));
+    }
+
+    /**
+     * Adds the controller namespace prefix to the callable
+     *
+     * @param $callable
+     * @return string
+     */
+    private function getPrefixedCallable($callable) {
+        return $this->getControllerNamespacePrefix().$callable;
     }
 
     /**
@@ -118,24 +210,29 @@ class FrontController implements IFrontController {
      * Wenn Route nicht existiert dann wird der Error Handler aufgerufen, ebenfalls mit Request und Response
      */
     public function execute() {
+        //Load extensions if not loaded yet
+        $this->loadExtensions();
+
+        //Find route
         $route = $this->findRoute();
 
-        $route->invoke($this->request, $this->response);
-    }
+        //Add request to route parameters
+        $this->addRouteParameter($this->request);
 
-    /**
-     * Lädt die Routen
-     *
-     * @param string $file Pfad zur Routen Datei
-     */
-    private function loadRoutes($file) {
-        require($file);
+        //Set the invocation arguments of the route
+        $route->setArguments($this->getRouteParameters());
+
+        //Set the uri of the route
+        $route->setUri($this->request->uri());
+
+        //Invoke
+        $route->invoke();
     }
 
     /**
      * Sucht die vom Nutzer aufgerufenen Route. Wird diese nicht gefunden wird der Error Handler zurückgegeben
      *
-     * @return object
+     * @return IRoute $result
      */
     private function findRoute() {
         $result = $this->errorHandler;

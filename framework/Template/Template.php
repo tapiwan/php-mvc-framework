@@ -9,6 +9,18 @@ use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
  * @package bitbetrieb\CMS\Template
  */
 class Template implements ITemplate {
+    /**
+     * Verzeichnis in dem alle Template Dateien liegen
+     *
+     * @var string
+     */
+    private static $viewDirectory = "";
+
+    /**
+     * Verzeichnis in dem dieses Template liegt
+     */
+    private $fileDirectory = "";
+
 	/**
 	 * Name der Template-Datei
 	 *
@@ -28,19 +40,19 @@ class Template implements ITemplate {
 	 *
 	 * @var array
 	 */
-	private $renderedParts = [];
+	private $parts = [];
 
 	/**
 	 * Name des momentanen aktiven Blocks
-	 *
-	 * @var null|string
+     *
+     * @var string
 	 */
-	private $currentBlock = null;
+	private $currentBlock = "";
 
 	/**
 	 * Flag welche angibt ob gerade gerendert wird
-	 *
-	 * @var bool
+     *
+     * @var bool
 	 */
 	private $rendering = false;
 
@@ -50,9 +62,10 @@ class Template implements ITemplate {
 	 * @param string $file Dateiname ohne Pfad, wird automatisch ergänzt
 	 * @param array $vars Variablen des Templates
 	 */
-	public function __construct($file, $vars = []) {
+	public function __construct($file, $vars = [], $fileDirectory = "") {
 		$this->file = $file;
 		$this->vars = $vars;
+		$this->fileDirectory = $fileDirectory;
 	}
 
 	/**
@@ -62,11 +75,11 @@ class Template implements ITemplate {
 	 * @return mixed
 	 */
 	public function __get($key) {
-		return isset($this->$key) ? $this->vars[$key] : false;
+		return $this->vars[$key];
 	}
 
 	/**
-	 * Magische Set Methode für Template Variablen
+	 * Set Methode für Template Variablen
 	 *
 	 * @param $key
 	 * @param $value
@@ -76,34 +89,53 @@ class Template implements ITemplate {
 		if (!$this->rendering) {
 			$this->vars[$key] = $value;
 		} else {
-			throw new \Exception("Can't mutate template variable '$key' during rendering process.");
+			throw new \Exception("Can't mutate template variables '$key' during rendering process.");
 		}
 	}
 
+    /**
+     * Setzt das Verzeichnis in dem alle Templates liegen
+     *
+     * @param $dir
+     */
+	public static function setViewDirectory($dir) {
+	    self::$viewDirectory = $dir;
+    }
+
+    /**
+     * Setzt das Verzeichnis in dem dieses Template liegt
+     *
+     * @param $dir
+     */
+    public function setFileDirectory($dir) {
+	    $this->fileDirectory = $dir;
+    }
+
 	/**
-	 * Magische Isset Methode für Template Variablen
+	 * Startet einen neuen Block
 	 *
-	 * @param $key
-	 * @return bool
+	 * @param $name
 	 */
-	public function __isset($key) {
-		return isset($this->vars[$key]);
+	private function block($name) {
+		$this->interceptBuffer();
+
+		$this->currentBlock = $name;
 	}
 
 	/**
-	 * Magische Unset Methode für Template Variable
-	 *
-	 * @param $key
+	 * Beendet einen Block
 	 */
-	public function __unset($key) {
-		unset($this->vars[$key]);
+	private function endblock() {
+		$this->interceptBuffer($this->currentBlock);
+
+		$this->currentBlock = "";
 	}
 
 	/**
 	 * Liest die Template Datei ein und gibt den produzierten Inhalt zurück
 	 *
 	 * @return string Generierter Inhalt
-	 * @throws \Exception TemplateNotFounds
+	 * @throws \Exception TemplateNotFound
 	 */
 	public function render() {
 		$this->rendering = true;
@@ -112,7 +144,7 @@ class Template implements ITemplate {
 		$this->endBuffer();
 		$this->rendering = false;
 
-		return implode("", $this->renderedParts);
+		return implode($this->parts);
 	}
 
 	/**
@@ -171,7 +203,14 @@ class Template implements ITemplate {
 	 * @return string
 	 */
 	private function resolveFilePath($file) {
-		return Container::get('view-directory').$file;
+	    if(!empty($this->fileDirectory)) {
+	        return $this->fileDirectory.DIRECTORY_SEPARATOR.$file;
+        }
+        else if(!empty(self::$viewDirectory)) {
+	        return self::$viewDirectory.DIRECTORY_SEPARATOR.$file;
+        }
+
+		return $file;
 	}
 
 	/**
@@ -183,11 +222,9 @@ class Template implements ITemplate {
 
 	/**
 	 * Speichert den bisherigen Buffer und leert ihn danach
-	 *
-	 * @return string
 	 */
-	private function interceptBuffer() {
-		$this->addTemplatePart(ob_get_contents());
+	private function interceptBuffer($key = "") {
+		$this->addTemplatePart($key, ob_get_contents());
 
 		ob_clean();
 	}
@@ -207,33 +244,12 @@ class Template implements ITemplate {
 	 * @param $key
 	 * @param $content
 	 */
-	private function addTemplatePart($content) {
-		if (is_null($this->currentBlock)) {
-			$this->renderedParts[] = $content;
+	private function addTemplatePart($key, $content) {
+		if (empty($key)) {
+			$this->parts[] = $content;
+		} else {
+			$this->parts[$key] = $content;
 		}
-		else {
-			$this->renderedParts[$this->currentBlock] = $content;
-		}
-	}
-
-	/**
-	 * Startet einen neuen benannten Block
-	 *
-	 * @param $name
-	 */
-	private function block($name) {
-		$this->interceptBuffer();
-
-		$this->currentBlock = $name;
-	}
-
-	/**
-	 * Beendet einen benannten Block
-	 */
-	private function endblock() {
-		$this->interceptBuffer();
-
-		$this->currentBlock = null;
 	}
 }
 

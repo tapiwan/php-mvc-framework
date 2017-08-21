@@ -1,7 +1,20 @@
 {
-  "db-host": "app.strongenuff.de",
-  "db-user": "shopsystem",
-  "db-name": "shopsystem",
-  "db-pass": "t4p1@Shop.!",
-  "secret": "2PTe9kW5GU3EHsp54tuMQeTVMlbT0WQco57NNazBn6A="
+  "database": {
+    "host": "app.strongenuff.de",
+    "user": "shopsystem",
+    "name": "shopsystem",
+    "password": "t4p1@Shop.!"
+  },
+  "security": {
+    "secret": "2PTe9kW5GU3EHsp54tuMQeTVMlbT0WQco57NNazBn6A="
+  },
+  "directories": {
+    "views": "/resources/views"
+  },
+  "files": {
+    "routes": "/app/routes.php"
+  },
+  "controller": {
+    "namespace": "\\bitbetrieb\\CMS\\Controller\\"
+  }
 }

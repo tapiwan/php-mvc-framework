@@ -12,9 +12,19 @@ class DatabaseHandler implements IDatabaseHandler {
     /**
      * Konfigurationsobjekt
      *
-     * @var IConfig|null
+     * @var IConfig
      */
-    private $config = null;
+    private $config;
+
+    /**
+     * Verbindungsinformationen zur Datenbank
+     *
+     * @vars string
+     */
+    private $host;
+    private $user;
+    private $pass;
+    private $name;
 
     /**
      * Datenbankverbindung
@@ -36,6 +46,11 @@ class DatabaseHandler implements IDatabaseHandler {
      */
     public function __construct(IConfig $config) {
         $this->config = $config;
+        $this->host = $this->config->get('database/host');
+        $this->user = $this->config->get('database/user');
+        $this->pass = $this->config->get('database/pass');
+        $this->name = $this->config->get('database/name');
+
         $this->connect();
     }
 
@@ -45,14 +60,7 @@ class DatabaseHandler implements IDatabaseHandler {
      * @throws \Exception Keine Konfiguration vorhanden. Daten der Verbindung können nicht gelesen werden.
      */
     public function connect() {
-        $this->checkConfig();
-
-        $user = $this->config->get('db-user');
-        $host = $this->config->get('db-host');
-        $pass = $this->config->get('db-pass');
-        $name = $this->config->get('db-name');
-
-        $this->connection = new \PDO("mysql:dbname=$name;host=$host", $user, $pass);
+        $this->connection = new \PDO("mysql:dbname={$this->name};host={$this->host}", $this->user, $this->pass);
     }
 
     /**
@@ -60,43 +68,25 @@ class DatabaseHandler implements IDatabaseHandler {
      *
      * @param IQueryObject $query
      *
-     * @return object Objekt mit Erfolg und Daten
+     * @return QueryResult Objekt mit Erfolg und Daten
      */
     public function query(IQueryObject $query) {
-        $result = (object) [
-            'success' => false,
-            'data' => [],
-            'insertId' => 0
-        ];
+        $result = new QueryResult();
 
         $this->checkConnection();
 
         $this->statement = $this->connection->query($query->assemble());
 
         if($this->checkStatement()) {
-            $result->success = true;
-            $result->insertId = $this->connection->lastInsertId();
-
-            foreach($this->getQueryResult() as $item) {
-                $result->data[] = $item;
-            };
+            $result->setSuccess(true);
+            $result->setLastInsertId($this->connection->lastInsertId());
+            $result->setData($this->getResultSet());
         }
         else {
-            $result->success = false;
+            $result->setSuccess(false);
         }
 
         return $result;
-    }
-
-    /**
-     * Überprüfen ob die Konfiguration geladen wurde
-     *
-     * @throws \Exception Keine Konfig
-     */
-    private function checkConfig() {
-        if(is_null($this->config)) {
-            throw new \Exception("Config missing, can't connect to database.");
-        }
     }
 
     /**
@@ -127,7 +117,7 @@ class DatabaseHandler implements IDatabaseHandler {
      *
      * @return array
      */
-    private function getQueryResult() {
+    private function getResultSet() {
         return $this->statement->fetchAll(\PDO::FETCH_ASSOC);
     }
 }

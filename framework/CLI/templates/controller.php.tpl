@@ -2,8 +2,8 @@
 
 namespace bitbetrieb\CMS\Controller;
 
-use bitbetrieb\CMS\HTTP\IRequest as IRequest;
-use bitbetrieb\CMS\HTTP\IResponse as IResponse;
+use bitbetrieb\CMS\HTTP\Request as Request;
+use bitbetrieb\CMS\HTTP\Response as Response;
 use bitbetrieb\CMS\Template\Template as Template;
 
 /**
@@ -14,11 +14,16 @@ class {ControllerName} extends Controller {
     /**
      * Index
      *
-     * @param IRequest $request
-     * @param IResponse $response
+     * @param Request $req
      */
-    public function index(IRequest $request, IResponse $response) {
-        echo "Index";
+    public function index(Request $req) {
+        $tpl = new Template('index.php', [
+        	   "title" => "Home"
+        ]);
+
+        $res = new Response();
+        $res->setBody($tpl->render())
+            ->send();
     }
 }
 

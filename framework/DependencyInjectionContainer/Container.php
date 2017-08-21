@@ -82,6 +82,16 @@ class Container implements IContainer {
     }
 
     /**
+     * Überprüft ob die Dependency existiert
+     *
+     * @param $id
+     * @return bool
+     */
+    public static function has($id) {
+        return isset(self::$map[$id]);
+    }
+
+    /**
      * Value, Singleton oder Class anhand von Identifier zurückgeben.
      * In diesem Zuge auch die Dependencies rekursiv auflösen.
      *
