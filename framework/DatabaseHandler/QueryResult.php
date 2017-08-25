@@ -1,10 +1,10 @@
 <?php
 
-namespace bitbetrieb\CMS\DatabaseHandler;
+namespace bitbetrieb\MVC\DatabaseHandler;
 
 /**
  * Class QueryResult
- * @package bitbetrieb\CMS\DatabaseHandler
+ * @package bitbetrieb\MVC\DatabaseHandler
  */
 class QueryResult implements IQueryResult {
     private $success;

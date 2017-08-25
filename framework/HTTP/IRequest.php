@@ -1,10 +1,10 @@
 <?php
 
-namespace bitbetrieb\CMS\HTTP;
+namespace bitbetrieb\MVC\HTTP;
 
 /**
  * Interface IRequest
- * @package bitbetrieb\CMS\HTTP
+ * @package bitbetrieb\MVC\HTTP
  */
 interface IRequest {
     public function uri();

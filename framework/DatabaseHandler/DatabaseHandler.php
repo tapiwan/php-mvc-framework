@@ -1,12 +1,12 @@
 <?php
 
-namespace bitbetrieb\CMS\DatabaseHandler;
+namespace bitbetrieb\MVC\DatabaseHandler;
 
-use bitbetrieb\CMS\Config\IConfig as IConfig;
+use bitbetrieb\MVC\Config\IConfig as IConfig;
 
 /**
  * Class MySqlDatabaseHandler
- * @package bitbetrieb\CMS\DatabaseHandler
+ * @package bitbetrieb\MVC\DatabaseHandler
  */
 class DatabaseHandler implements IDatabaseHandler {
     /**

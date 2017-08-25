@@ -1,10 +1,10 @@
 <?php
 
-namespace bitbetrieb\CMS\JsonHandler;
+namespace bitbetrieb\MVC\JsonHandler;
 
 /**
  * Class JsonHandler
- * @package bitbetrieb\CMS\JsonHandler
+ * @package bitbetrieb\MVC\JsonHandler
  */
 class JsonHandler {
     /**

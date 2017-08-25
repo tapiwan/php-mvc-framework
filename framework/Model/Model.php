@@ -1,14 +1,14 @@
 <?php
 
-namespace bitbetrieb\CMS\Model;
+namespace bitbetrieb\MVC\Model;
 
-use bitbetrieb\CMS\DatabaseHandler\IDatabaseHandler;
-use bitbetrieb\CMS\DatabaseHandler\QueryObject as QueryObject;
-use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
+use bitbetrieb\MVC\DatabaseHandler\IDatabaseHandler;
+use bitbetrieb\MVC\DatabaseHandler\QueryObject as QueryObject;
+use bitbetrieb\MVC\DependencyInjectionContainer\Container as Container;
 
 /**
  * Class Model
- * @package bitbetrieb\CMS\Model
+ * @package bitbetrieb\MVC\Model
  */
 abstract class Model {
     /**
@@ -265,7 +265,7 @@ abstract class Model {
     /**
      * Gib den Klassennamen ohne Namespace zurück
      *
-     * Somit wird z.B. "bitbetrieb\CMS\Model\User" => "User"
+     * Somit wird z.B. "bitbetrieb\MVC\Model\User" => "User"
      *
      * @param $class
      * @return string

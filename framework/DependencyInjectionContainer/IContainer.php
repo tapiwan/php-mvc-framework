@@ -1,10 +1,10 @@
 <?php
 
-namespace bitbetrieb\CMS\DependencyInjectionContainer;
+namespace bitbetrieb\MVC\DependencyInjectionContainer;
 
 /**
  * Interface IContainer
- * @package bitbetrieb\CMS\DependencyInjectionContainer
+ * @package bitbetrieb\MVC\DependencyInjectionContainer
  */
 interface IContainer {
     public static function addValue($id, $value);

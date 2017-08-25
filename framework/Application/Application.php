@@ -1,14 +1,14 @@
 <?php
 
-namespace bitbetrieb\CMS\Application;
+namespace bitbetrieb\MVC\Application;
 
-use bitbetrieb\CMS\Config\IConfig as IConfig;
-use bitbetrieb\CMS\FrontController\IFrontController as IFrontController;
-use bitbetrieb\CMS\Template\Template as Template;
+use bitbetrieb\MVC\Config\IConfig as IConfig;
+use bitbetrieb\MVC\FrontController\IFrontController as IFrontController;
+use bitbetrieb\MVC\Template\Template as Template;
 
 /**
  * Class Application
- * @package bitbetrieb\CMS\Application
+ * @package bitbetrieb\MVC\Application
  */
 class Application {
     /**

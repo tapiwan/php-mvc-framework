@@ -1,10 +1,10 @@
 <?php
 
-namespace bitbetrieb\CMS\DependencyInjectionContainer;
+namespace bitbetrieb\MVC\DependencyInjectionContainer;
 
 /**
  * Class Container
- * @package bitbetrieb\CMS\DependencyInjectionContainer
+ * @package bitbetrieb\MVC\DependencyInjectionContainer
  */
 class Container implements IContainer {
     /**

@@ -1,14 +1,14 @@
 <?php
 
-namespace bitbetrieb\CMS\FrontController;
+namespace bitbetrieb\MVC\FrontController;
 
-use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
-use bitbetrieb\CMS\HTTP\IResponse as IResponse;
-use bitbetrieb\CMS\HTTP\IRequest as IRequest;
+use bitbetrieb\MVC\DependencyInjectionContainer\Container as Container;
+use bitbetrieb\MVC\HTTP\IResponse as IResponse;
+use bitbetrieb\MVC\HTTP\IRequest as IRequest;
 
 /**
  * Class Route
- * @package bitbetrieb\CMS\FrontController
+ * @package bitbetrieb\MVC\FrontController
  */
 class Route implements IRoute {
     /**

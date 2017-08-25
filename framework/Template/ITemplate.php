@@ -1,10 +1,10 @@
 <?php
 
-namespace bitbetrieb\CMS\Template;
+namespace bitbetrieb\MVC\Template;
 
 /**
  * Interface ITemplate
- * @package bitbetrieb\CMS\Template
+ * @package bitbetrieb\MVC\Template
  */
 interface ITemplate {
     public function __construct($file, $vars = [], $fileDirectory = "");

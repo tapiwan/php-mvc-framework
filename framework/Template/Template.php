@@ -1,12 +1,12 @@
 <?php
 
-namespace bitbetrieb\CMS\Template;
+namespace bitbetrieb\MVC\Template;
 
-use bitbetrieb\CMS\DependencyInjectionContainer\Container as Container;
+use bitbetrieb\MVC\DependencyInjectionContainer\Container as Container;
 
 /**
  * Class Template
- * @package bitbetrieb\CMS\Template
+ * @package bitbetrieb\MVC\Template
  */
 class Template implements ITemplate {
     /**

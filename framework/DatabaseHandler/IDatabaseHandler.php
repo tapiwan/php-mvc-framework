@@ -1,12 +1,12 @@
 <?php
 
-namespace bitbetrieb\CMS\DatabaseHandler;
+namespace bitbetrieb\MVC\DatabaseHandler;
 
-use bitbetrieb\CMS\Config\IConfig as IConfig;
+use bitbetrieb\MVC\Config\IConfig as IConfig;
 
 /**
  * Interface IDatabaseHandler
- * @package bitbetrieb\CMS\DatabaseHandler
+ * @package bitbetrieb\MVC\DatabaseHandler
  */
 interface IDatabaseHandler {
     public function __construct(IConfig $config);

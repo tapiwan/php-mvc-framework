@@ -1,6 +1,6 @@
 <?php
 
-namespace bitbetrieb\CMS\Model;
+namespace bitbetrieb\MVC\Model;
 
 class User extends Model {
     public function __construct() {

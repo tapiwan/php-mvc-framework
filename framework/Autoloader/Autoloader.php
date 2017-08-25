@@ -1,10 +1,10 @@
 <?php
 
-namespace bitbetrieb\CMS\Autoloader;
+namespace bitbetrieb\MVC\Autoloader;
 
 /**
  * Class Autoloader
- * @package bitbetrieb\CMS\Autoloader
+ * @package bitbetrieb\MVC\Autoloader
  */
 class Autoloader {
     /**

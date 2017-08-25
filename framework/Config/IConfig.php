@@ -1,10 +1,10 @@
 <?php
 
-namespace bitbetrieb\CMS\Config;
+namespace bitbetrieb\MVC\Config;
 
 /**
  * Interface IConfig
- * @package bitbetrieb\CMS\Config
+ * @package bitbetrieb\MVC\Config
  */
 interface IConfig {
     public function __construct($file);

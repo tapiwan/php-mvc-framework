@@ -7,7 +7,7 @@ include realpath("framework/CLI/CLI.php");
 /**
  * IMPORTS
  */
-use bitbetrieb\CMS\CLI\CLI as CLI;
+use bitbetrieb\MVC\CLI\CLI as CLI;
 
 /**
  * COMMAND LINE INTERFACE

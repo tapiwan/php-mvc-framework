@@ -1,14 +1,14 @@
 <?php
 
-namespace bitbetrieb\CMS\Controller;
+namespace bitbetrieb\MVC\Controller;
 
-use bitbetrieb\CMS\HTTP\Request as Request;
-use bitbetrieb\CMS\HTTP\Response as Response;
-use bitbetrieb\CMS\Template\Template as Template;
+use bitbetrieb\MVC\HTTP\Request as Request;
+use bitbetrieb\MVC\HTTP\Response as Response;
+use bitbetrieb\MVC\Template\Template as Template;
 
 /**
  * Class HomeController
- * @package bitbetrieb\CMS\Controller
+ * @package bitbetrieb\MVC\Controller
  */
 class HomeController extends Controller {
     /**

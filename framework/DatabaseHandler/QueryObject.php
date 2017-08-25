@@ -1,6 +1,6 @@
 <?php
 
-namespace bitbetrieb\CMS\DatabaseHandler;
+namespace bitbetrieb\MVC\DatabaseHandler;
 
 class QueryObject implements IQueryObject {
     private $queryParts;

@@ -1,6 +1,6 @@
 <?php
 
-namespace bitbetrieb\CMS\Model;
+namespace bitbetrieb\MVC\Model;
 
 class {ModelName} extends Model {
     public function __construct() {
