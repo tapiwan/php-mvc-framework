@@ -10,7 +10,7 @@ use bitbetrieb\MVC\DependencyInjectionContainer\Container as Container;
  * Class Model
  * @package bitbetrieb\MVC\Model
  */
-abstract class Model {
+abstract class Model implements IModel {
     /**
      * Zum Model zugehöriger Tabellenname
      *
