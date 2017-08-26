@@ -156,7 +156,7 @@ abstract class Model implements IModel {
 
         $query->selectFrom('*', $static->table)->addCriteria($criteria);
 
-        $result = Container::get('database-handler')->query($query);
+        $result = Container::get('database-handler')->query($query->assemble());
 
         if($result->getSuccess()) {
             if(count($result->getData()) === 1) {
@@ -180,7 +180,7 @@ abstract class Model implements IModel {
      * Speichere Model
      */
     public function save() {
-        $result = $this->databaseHandler->query($this->buildSaveQuery());
+        $result = $this->databaseHandler->query($this->buildSaveQuery()->assemble());
 
         //Bei erstmaligem Speichern:
         //lies den erzeugten Primärschlüssel aus und setze Datum des Models
@@ -193,7 +193,7 @@ abstract class Model implements IModel {
      * Lösche Model
      */
     public function delete() {
-       $result = $this->databaseHandler->query($this->buildDeleteQuery());
+       $result = $this->databaseHandler->query($this->buildDeleteQuery()->assemble());
 
        return $result->getSuccess();
     }

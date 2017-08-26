@@ -2,16 +2,14 @@
 
 namespace bitbetrieb\MVC\DatabaseHandler;
 
-use bitbetrieb\MVC\Config\IConfig as IConfig;
-
 /**
  * Interface IDatabaseHandler
  * @package bitbetrieb\MVC\DatabaseHandler
  */
 interface IDatabaseHandler {
-    public function __construct(IConfig $config);
+    public function __construct($host, $user, $db, $password);
     public function connect();
-    public function query(IQueryObject $query);
+    public function query($query);
 }
 
 ?>
