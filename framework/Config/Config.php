@@ -1,10 +1,10 @@
 <?php
 
-namespace bitbetrieb\CMS\Config;
+namespace bitbetrieb\MVC\Config;
 
 /**
  * Class Config
- * @package bitbetrieb\CMS\Config
+ * @package bitbetrieb\MVC\Config
  */
 class Config implements IConfig {
     /**

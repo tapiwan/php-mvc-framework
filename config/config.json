@@ -15,6 +15,6 @@
     "routes": "/app/routes.php"
   },
   "controller": {
-    "namespace": "\\bitbetrieb\\CMS\\Controller\\"
+    "namespace": "\\bitbetrieb\\MVC\\Controller\\"
   }
 }

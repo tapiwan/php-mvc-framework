@@ -1,13 +1,13 @@
 <?php
 
-namespace bitbetrieb\CMS\FrontController;
+namespace bitbetrieb\MVC\FrontController;
 
-use bitbetrieb\CMS\HTTP\IResponse as IResponse;
-use bitbetrieb\CMS\HTTP\IRequest as IRequest;
+use bitbetrieb\MVC\HTTP\IResponse as IResponse;
+use bitbetrieb\MVC\HTTP\IRequest as IRequest;
 
 /**
  * Interface IRoute
- * @package bitbetrieb\CMS\FrontController
+ * @package bitbetrieb\MVC\FrontController
  */
 interface IRoute {
     public function __construct($route, $httpMethod, $callable);

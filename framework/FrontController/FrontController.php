@@ -1,14 +1,14 @@
 <?php
 
-namespace bitbetrieb\CMS\FrontController;
+namespace bitbetrieb\MVC\FrontController;
 
-use bitbetrieb\CMS\HTTP\IResponse as IResponse;
-use bitbetrieb\CMS\HTTP\IRequest as IRequest;
-use bitbetrieb\CMS\FrontController\Route as Route;
+use bitbetrieb\MVC\HTTP\IResponse as IResponse;
+use bitbetrieb\MVC\HTTP\IRequest as IRequest;
+use bitbetrieb\MVC\FrontController\Route as Route;
 
 /**
  * Class FrontController
- * @package bitbetrieb\CMS\FrontController
+ * @package bitbetrieb\MVC\FrontController
  */
 class FrontController implements IFrontController {
     /**

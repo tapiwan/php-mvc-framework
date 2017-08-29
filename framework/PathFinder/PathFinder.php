@@ -1,10 +1,10 @@
 <?php
 
-namespace bitbetrieb\CMS\PathFinder;
+namespace bitbetrieb\MVC\PathFinder;
 
 /**
  * Class PathFinder
- * @package bitbetrieb\CMS\PathFinder
+ * @package bitbetrieb\MVC\PathFinder
  */
 class PathFinder {
     /**

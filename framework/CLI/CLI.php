@@ -1,10 +1,10 @@
 <?php
 
-namespace bitbetrieb\CMS\CLI;
+namespace bitbetrieb\MVC\CLI;
 
 /**
  * Class CLI
- * @package bitbetrieb\CMS\CLI
+ * @package bitbetrieb\MVC\CLI
  */
 class CLI {
     private $scriptName;

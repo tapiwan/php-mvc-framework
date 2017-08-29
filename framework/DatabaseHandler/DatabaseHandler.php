@@ -1,21 +1,12 @@
 <?php
 
-namespace bitbetrieb\CMS\DatabaseHandler;
-
-use bitbetrieb\CMS\Config\IConfig;
+namespace bitbetrieb\MVC\DatabaseHandler;
 
 /**
  * Class MySqlDatabaseHandler
- * @package bitbetrieb\CMS\DatabaseHandler
+ * @package bitbetrieb\MVC\DatabaseHandler
  */
 class DatabaseHandler implements IDatabaseHandler {
-    /**
-     * Konfigurationsobjekt
-     *
-     * @var IConfig
-     */
-    private $config;
-
     /**
      * Verbindungsinformationen zur Datenbank
      *
@@ -42,14 +33,16 @@ class DatabaseHandler implements IDatabaseHandler {
 
     /**
      * DatabaseHandler constructor.
-     * @param IConfig $config
+     * @param string $host
+     * @param string $user
+     * @param string $db
+     * @param string $password
      */
-    public function __construct(IConfig $config) {
-        $this->config = $config;
-        $this->host = $this->config->get('database/host');
-        $this->user = $this->config->get('database/user');
-        $this->pass = $this->config->get('database/pass');
-        $this->name = $this->config->get('database/name');
+    public function __construct($host, $user, $db, $password) {
+        $this->host = $host;
+        $this->user = $user;
+        $this->pass = $db;
+        $this->name = $password;
 
         $this->connect();
     }
@@ -66,16 +59,16 @@ class DatabaseHandler implements IDatabaseHandler {
     /**
      * Führe SQL Query aus und gebe ResultSet zurück
      *
-     * @param IQueryObject $query
+     * @param string $query
      *
      * @return QueryResult Objekt mit Erfolg und Daten
      */
-    public function query(IQueryObject $query) {
+    public function query($query) {
         $result = new QueryResult();
 
         $this->checkConnection();
 
-        $this->statement = $this->connection->query($query->assemble());
+        $this->statement = $this->connection->query($query);
 
         if($this->checkStatement()) {
             $result->setSuccess(true);

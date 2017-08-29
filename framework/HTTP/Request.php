@@ -1,10 +1,10 @@
 <?php
 
-namespace bitbetrieb\CMS\HTTP;
+namespace bitbetrieb\MVC\HTTP;
 
 /**
  * Class Request
- * @package bitbetrieb\CMS\HTTP
+ * @package bitbetrieb\MVC\HTTP
  */
 class Request implements IRequest {
     /**

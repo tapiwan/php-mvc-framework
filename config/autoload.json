@@ -1,6 +1,6 @@
 {
-   "bitbetrieb\\CMS": ["/framework"],
-   "bitbetrieb\\CMS\\Vendor": ["/vendor"],
-   "bitbetrieb\\CMS\\Controller": ["/app/controller"],
-   "bitbetrieb\\CMS\\Model": ["/app/models"]
+   "bitbetrieb\\MVC": ["/framework"],
+   "bitbetrieb\\MVC\\Vendor": ["/vendor"],
+   "bitbetrieb\\MVC\\Controller": ["/app/controller"],
+   "bitbetrieb\\MVC\\Model": ["/app/models"]
 }

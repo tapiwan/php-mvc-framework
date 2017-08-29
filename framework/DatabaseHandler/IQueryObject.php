@@ -1,6 +1,6 @@
 <?php
 
-namespace bitbetrieb\CMS\DatabaseHandler;
+namespace bitbetrieb\MVC\DatabaseHandler;
 
 interface IQueryObject {
     public function selectFrom($columns, $tables);

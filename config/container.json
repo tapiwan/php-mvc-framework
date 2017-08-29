@@ -1,7 +1,7 @@
 [
   {
     "id": "application",
-    "class": "bitbetrieb\\CMS\\Application\\Application",
+    "class": "bitbetrieb\\MVC\\Application\\Application",
     "type": "singleton",
     "dependencies": [
       "config",
@@ -10,7 +10,7 @@
   },
   {
     "id": "config",
-    "class": "bitbetrieb\\CMS\\Config\\Config",
+    "class": "bitbetrieb\\MVC\\Config\\Config",
     "type": "singleton",
     "dependencies": [
       "config-file"
@@ -23,7 +23,7 @@
   },
   {
     "id": "front-controller",
-    "class": "bitbetrieb\\CMS\\FrontController\\FrontController",
+    "class": "bitbetrieb\\MVC\\FrontController\\FrontController",
     "type": "singleton",
     "dependencies": [
       "request"
@@ -31,13 +31,13 @@
   },
   {
     "id": "request",
-    "class": "bitbetrieb\\CMS\\HTTP\\Request",
+    "class": "bitbetrieb\\MVC\\HTTP\\Request",
     "type": "singleton",
     "dependencies": []
   },
   {
     "id": "database-handler",
-    "class": "bitbetrieb\\CMS\\DatabaseHandler\\DatabaseHandler",
+    "class": "bitbetrieb\\MVC\\DatabaseHandler\\DatabaseHandler",
     "type": "singleton",
     "dependencies": [
       "config"

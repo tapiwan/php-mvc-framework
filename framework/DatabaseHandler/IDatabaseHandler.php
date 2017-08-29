@@ -1,17 +1,15 @@
 <?php
 
-namespace bitbetrieb\CMS\DatabaseHandler;
-
-use bitbetrieb\CMS\Config\IConfig as IConfig;
+namespace bitbetrieb\MVC\DatabaseHandler;
 
 /**
  * Interface IDatabaseHandler
- * @package bitbetrieb\CMS\DatabaseHandler
+ * @package bitbetrieb\MVC\DatabaseHandler
  */
 interface IDatabaseHandler {
-    public function __construct(IConfig $config);
+    public function __construct($host, $user, $db, $password);
     public function connect();
-    public function query(IQueryObject $query);
+    public function query($query);
 }
 
 ?>

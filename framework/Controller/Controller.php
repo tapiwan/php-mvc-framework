@@ -1,10 +1,10 @@
 <?php
 
-namespace bitbetrieb\CMS\Controller;
+namespace bitbetrieb\MVC\Controller;
 
 /**
  * Class Controller
- * @package bitbetrieb\CMS\Controller
+ * @package bitbetrieb\MVC\Controller
  */
 abstract class Controller {
 

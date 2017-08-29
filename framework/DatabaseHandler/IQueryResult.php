@@ -1,10 +1,10 @@
 <?php
 
-namespace bitbetrieb\CMS\DatabaseHandler;
+namespace bitbetrieb\MVC\DatabaseHandler;
 
 /**
  * Interface IQueryResult
- * @package bitbetrieb\CMS\DatabaseHandler
+ * @package bitbetrieb\MVC\DatabaseHandler
  */
 interface IQueryResult {
     public function setSuccess($success);
