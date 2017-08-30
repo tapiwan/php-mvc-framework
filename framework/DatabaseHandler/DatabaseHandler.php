@@ -14,8 +14,8 @@ class DatabaseHandler implements IDatabaseHandler {
 	 */
 	private $host;
 	private $user;
+	private $db;
 	private $password;
-	private $name;
 
 	/**
 	 * Datenbankverbindung
@@ -34,8 +34,8 @@ class DatabaseHandler implements IDatabaseHandler {
 	public function __construct($host, $user, $db, $password) {
 		$this->host     = $host;
 		$this->user     = $user;
-		$this->password = $db;
-		$this->name     = $password;
+		$this->db       = $db;
+		$this->password = $password;
 
 		$this->connect();
 	}
@@ -46,7 +46,7 @@ class DatabaseHandler implements IDatabaseHandler {
 	 * @throws \Exception Keine Konfiguration vorhanden. Daten der Verbindung können nicht gelesen werden.
 	 */
 	public function connect() {
-		$this->connection = new \PDO("mysql:dbname={$this->name};host={$this->host}", $this->user, $this->password);
+		$this->connection = new \PDO("mysql:dbname={$this->db};host={$this->host}", $this->user, $this->password);
 	}
 
 	/**
