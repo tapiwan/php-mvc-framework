@@ -15,6 +15,7 @@ interface IModel {
     public function save();
     public function delete();
     public function fill($modelData);
+    public function json();
 }
 
 ?>

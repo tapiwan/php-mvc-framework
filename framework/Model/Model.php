@@ -248,6 +248,24 @@ abstract class Model implements IModel {
 		return $this;
 	}
 
+    /**
+     * Gebe Model Daten als JSON zurück
+     */
+    public function json() {
+        $filteredData = [];
+
+        foreach ($this->data as $key => $value) {
+            //Überspringe Daten welche nicht im JSON angezeigt werden sollen
+            if (in_array($key, $this->hidden)) {
+                continue;
+            }
+
+            $filteredData[$key] = $value;
+        }
+
+        return json_encode($filteredData);
+    }
+
 	/**
 	 * Überprüft ob das Model den Schlüssel enthält
 	 *
