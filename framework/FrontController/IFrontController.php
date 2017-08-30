@@ -14,6 +14,7 @@ interface IFrontController {
     public function addRoute($method, $route, $callable);
     public function setErrorHandler($callable);
     public function execute();
+    public function load($file);
 }
 
 ?>

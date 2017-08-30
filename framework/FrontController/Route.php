@@ -11,295 +11,234 @@ use bitbetrieb\MVC\HTTP\IRequest as IRequest;
  * @package bitbetrieb\MVC\FrontController
  */
 class Route implements IRoute {
-    /**
-     * Die original Route
-     *
-     * @var string
-     */
-    private $route;
+	/**
+	 * Die original Route
+	 *
+	 * @var string
+	 */
+	private $route;
 
-    /**
-     * Regulärer Ausdruck der Route
-     *
-     * @var string
-     */
-    private $routeRegex;
+	/**
+	 * HTTP Methode
+	 *
+	 * @var string
+	 */
+	private $httpMethod;
 
-    /**
-     * HTTP Methode
-     *
-     * @var string
-     */
-    private $httpMethod;
+	/**
+	 * Callable
+	 *
+	 * @var string
+	 */
+	private $callable;
 
-    /**
-     * Klassenname des aufzurufenden Controllers mit Namespace
-     *
-     * @var string
-     */
-    private $controllerClassName;
+	/**
+	 * Argumente mit denen die Controllermethode aufgerufen werden soll
+	 *
+	 * @var array
+	 */
+	private $arguments = [];
 
-    /**
-     * Methodenname der am Controller aufzurufenden Methode
-     *
-     * @var string
-     */
-    private $controllerClassMethodName;
+	/**
+	 * Route constructor.
+	 *
+	 * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
+	 * @param string $httpMethod HTTP Methode
+	 * @param string $callable Zeichenkette in Form von "controller@funktion"
+	 */
+	public function __construct($route, $httpMethod, $callable) {
+		$this->setRoute($route);
+		$this->setHttpMethod($httpMethod);
+		$this->setCallable($callable);
+	}
 
-    /**
-     * URI des Requests
-     *
-     * @var string
-     */
-    private $uri;
+	/**
+	 * Setzt die original Route
+	 *
+	 * @param $route
+	 */
+	public function setRoute($route) {
+		$this->route = $route;
+	}
 
-    /**
-     * Argumente mit denen die Controllermethode aufgerufen werden soll
-     *
-     * @var array
-     */
-    private $arguments = [];
+	/**
+	 * Gibt die original Route zurück
+	 */
+	public function getRoute() {
+		return $this->route;
+	}
 
-    /**
-     * Route constructor.
-     *
-     * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
-     * @param string $httpMethod HTTP Methode
-     * @param string $callable Zeichenkette in Form von "controller@funktion"
-     */
-    public function __construct($route, $httpMethod, $callable) {
-        $this->setRoute($route);
-        $this->setRouteRegex($route);
-        $this->setHttpMethod($httpMethod);
-        $this->initCallable($callable);
-    }
+	/**
+	 * Setze HTTP Methode
+	 *
+	 * @param string $httpMethod
+	 */
+	public function setHttpMethod($httpMethod) {
+		$this->httpMethod = $httpMethod;
+	}
 
-    /**
-     * Setzt die original Route
-     *
-     * @param $route
-     */
-    public function setRoute($route) {
-        $this->route = $route;
-    }
+	/**
+	 * Gibt die HTTP Methode zurück
+	 *
+	 * @return string HTTP Methode
+	 */
+	public function getHttpMethod() {
+		return $this->httpMethod;
+	}
 
-    /**
-     * Gibt die original Route zurück
-     */
-    public function getRoute() {
-        return $this->route;
-    }
+	/**
+	 * Setzt Callable
+	 *
+	 * @param string $callable Zeichenkette in Form von "controller@funktion"
+	 */
+	public function setCallable($callable) {
+		$this->callable = $callable;
+	}
 
-    /**
-     * Baut die Route zu regulärem Ausdruck um und speichert ihn
-     *
-     * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
-     */
-    public function setRouteRegex($route) {
-        //Platzhalter {} durch regulären Ausdruck (.*) ersetzen
-        $regex = preg_replace("/({.*?})/", "(.*)", $route);
+	/**
+	 * Gibt Callable aus
+	 *
+	 * @return string
+	 */
+	public function getCallable() {
+		return $this->callable;
+	}
 
-        //Slashes in regulärem Ausdruck ersetzen
-        $regex = str_replace('/', '\/', $regex);
+	/**
+	 * Fügt einen Parameter für die Controllermethode hinzu
+	 *
+	 * @param mixed $arg
+	 */
+	public function addArgument($arg) {
+		$this->arguments[] = $arg;
+	}
 
-        //Delimiter an regulären Ausdruck anhängen
-        $regex = '/^' . $regex  . '$/';
+	/**
+	 * Überprüft ob ein Request mit der Route übereinstimmt
+	 *
+	 * @param IRequest $request
+	 *
+	 * @return bool
+	 */
+	public function matches(IRequest $request) {
+		$matches = false;
 
-        $this->routeRegex = $regex;
-    }
+		if ($this->httpMethodsMatch($request->method())) {
+			if ($this->uriMatchesRegex($request->uri())) {
+				$matches = true;
+			}
+		}
 
-    /**
-     * Gibt regulären Ausdruck zurück
-     *
-     * @return string Regulärer Ausdruck der Route
-     */
-    public function getRouteRegex() {
-        return $this->routeRegex;
-    }
+		return $matches;
+	}
 
-    /**
-     * Setze HTTP Methode
-     *
-     * @param string $httpMethod
-     */
-    public function setHttpMethod($httpMethod) {
-        $this->httpMethod = $httpMethod;
-    }
+	/**
+	 * Aktiviere die Route.
+	 * Der Controller wird erzeugt und die Methode wird mit den notwendigen Parametern aufgerufen
+	 */
+	public function invoke(IRequest $request) {
+		//URI Parameter an gegebene Parameter anhängen
+		$this->addURIArguments($request->uri());
 
-    /**
-     * Gibt die HTTP Methode zurück
-     *
-     * @return string HTTP Methode
-     */
-    public function getHttpMethod() {
-        return $this->httpMethod;
-    }
+		//Controller Klassen Reflektor erzeugen
+		$controller = new \ReflectionClass($this->getControllerClass());
 
-    /**
-     * Löst die Zeichenkette in Controllername und Funktionsname auf und speichert sie
-     *
-     * @param string $callable Zeichenkette in Form von "controller@funktion"
-     */
-    public function initCallable($callable) {
-        $parts = explode("@", $callable);
+		//Controller Methoden Reflektor erzeugen
+		$method = new \ReflectionMethod($this->getControllerClass(), $this->getControllerMethod());
 
-        $this->setControllerClassName($parts[0]);
-        $this->setControllerClassMethodName($parts[1]);
-    }
+		//Controller mit Methode aufrufen und Parameter übergeben
+		$method->invokeArgs($controller->newInstance(), $this->getArguments());
+	}
 
-    /**
-     * Setze Klassenname des Controllers
-     *
-     * @param string $controllerClassName
-     */
-    public function setControllerClassName($controllerClassName) {
-        $this->controllerClassName = $controllerClassName;
-    }
+	/**
+	 * Baut die Route zu regulärem Ausdruck um und gibt diesen zurück
+	 *
+	 * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
+	 *
+	 * @return string $regex Regulärer Ausdruck welcher aus der Route produziert wurde
+	 */
+	private function getRouteRegex() {
+		//Platzhalter {} durch regulären Ausdruck (.*) ersetzen
+		$regex = preg_replace("/({.*?})/", "(.*)", $this->getRoute());
 
-    /**
-     * Gibt den Klassenname des Controllers zurück
-     *
-     * @return string Klassenname des Controllers
-     */
-    public function getControllerClassName() {
-        return $this->controllerClassName;
-    }
+		//Slashes in regulärem Ausdruck ersetzen
+		$regex = str_replace('/', '\/', $regex);
 
-    /**
-     * Setze Methodenname der am Controller aufzurufenden Methode
-     *
-     * @param string $controllerClassMethodName Methodenname der am Controller aufzurufenden Methode
-     */
-    public function setControllerClassMethodName($controllerClassMethodName) {
-        $this->controllerClassMethodName = $controllerClassMethodName;
-    }
+		//Delimiter an regulären Ausdruck anhängen
+		$regex = '/^'.$regex.'$/';
 
-    /**
-     * Gibt Methodenname der am Controller aufzurufenden Methode zurück
-     *
-     * @return string Methodenname der am Controller aufzurufenden Methode
-     */
-    public function getControllerClassMethodName() {
-        return $this->controllerClassMethodName;
-    }
+		return $regex;
+	}
 
-    /**
-     * Setzt die URI, aus der die Parameter ausgelesen werden sollen
-     *
-     * @param $uri
-     */
-    public function setUri($uri) {
-        $this->uri = $uri;
-    }
+	/**
+	 * Vergleicht HTTP Methode der Route mit übergebener Methode
+	 *
+	 * @param string $method Zu vergleichende HTTP Methode
+	 *
+	 * @return bool Enthält true wenn Methoden übereinstimmen, false wenn nicht
+	 */
+	private function httpMethodsMatch($method) {
+		return strtoupper($method) === strtoupper($this->getHttpMethod());
+	}
 
-    /**
-     * Gibt die URI des Requests zurück
-     *
-     * @param $uri
-     * @return string
-     */
-    public function getUri() {
-        return $this->uri;
-    }
+	/**
+	 * Vergleicht URI der Route mit übergebener URI
+	 *
+	 * @param string $uri Zu vergleichende URI
+	 *
+	 * @return bool Enthält true wenn URI übereinstimmen, false wenn nicht
+	 */
+	private function uriMatchesRegex($uri) {
+		$match = preg_match($this->getRouteRegex(), $uri);
 
-    /**
-     * Fügt ein Argument für die Controllermethode hinzu
-     *
-     * @param mixed $arg
-     */
-    public function addArgument($arg) {
-        $this->arguments[] = $arg;
-    }
+		return ($match === 1) ? true : false;
+	}
 
-    /**
-     * Setzt die Argumente für die Controllermethode
-     *
-     * @param array $args
-     */
-    public function setArguments(Array $args) {
-        $this->arguments = $args;
-    }
+	/**
+	 * Liest Parameter aus einer URI aus und fügt sie den Routen Argumenten hinzu
+	 */
+	private function addURIArguments($uri) {
+		$params = [];
 
-    /**
-     * Gibt die Argumente der Controllermethode zurück
-     *
-     * @return array
-     */
-    public function getArguments() {
-        return $this->arguments;
-    }
+		//Parameter aus URI auslesen
+		if (preg_match($this->getRouteRegex(), $uri, $params)) {
+			array_shift($params);
+		}
 
-    /**
-     * Vergleicht HTTP Methode der Route mit übergebener Methode
-     *
-     * @param string $method Zu vergleichende HTTP Methode
-     *
-     * @return bool Enthält true wenn Methoden übereinstimmen, false wenn nicht
-     */
-    public function httpMethodsMatch($method) {
-        return $method === $this->getHttpMethod();
-    }
+		//Parameter der Route hinzufügen
+		if (count($params) > 0) {
+			foreach ($params as $param) {
+				$this->addArgument($param);
+			}
+		}
+	}
 
-    /**
-     * Vergleicht URI der Route mit übergebener URI
-     *
-     * @param string $uri Zu vergleichende URI
-     *
-     * @return bool Enthält true wenn URI übereinstimmen, false wenn nicht
-     */
-    public function uriMatchesRegex($uri) {
-        $match = preg_match($this->getRouteRegex(), $uri);
+	/**
+	 * Gibt den Klassenname des Controllers zurück
+	 *
+	 * @return string Klassenname des Controllers
+	 */
+	private function getControllerClass() {
+		return explode("@", $this->callable)[0];
+	}
 
-        return ($match === 1) ? true : false;
-    }
+	/**
+	 * Gibt Methodenname der am Controller aufzurufenden Methode zurück
+	 *
+	 * @return string Methodenname der am Controller aufzurufenden Methode
+	 */
+	private function getControllerMethod() {
+		return explode("@", $this->callable)[1];
+	}
 
-    /**
-     * Fügt an die Routen Parameter noch die URI Parameter hinzu
-     *
-     * @param array $routeParameters
-     */
-    public function combineInvocationArguments() {
-        //URI Parameter auslesen und hinzufügen
-        foreach($this->getURIParameters() as $param) {
-            $this->arguments[] = $param;
-        }
-    }
-
-    /**
-     * Liest Parameter aus einer URI aus
-     *
-     * @param string $uri Auszulesende URI
-     *
-     * @return array Enthält aus der URI ausgelesene Parameter als Schlüssel-Wert Paar. Wenn es keine Parameter
-     * gibt ist es ein leeres Array
-     */
-    public function getURIParameters() {
-        $params = [];
-
-        if(!empty($this->getRouteRegex()) && preg_match($this->getRouteRegex(), $this->getUri(), $params)) {
-            array_shift($params);
-        }
-
-        return $params;
-    }
-
-    /**
-     * Aktiviere die Route.
-     * Der Controller wird erzeugt und die Methode wird mit den notwendigen Parametern aufgerufen
-     */
-    public function invoke() {
-        //URI Parameter an gegebene Parameter anhängen
-        $this->combineInvocationArguments();
-
-        //Controller Klassen Reflektor erzeugen
-        $controller = new \ReflectionClass($this->getControllerClassName());
-
-        //Controller Methoden Reflektor erzeugen
-        $method = new \ReflectionMethod($this->getControllerClassName(), $this->getControllerClassMethodName());
-
-        //Controller mit Methode aufrufen und Parameter übergeben
-        $method->invokeArgs($controller->newInstance(), $this->getArguments());
-    }
+	/**
+	 * Gibt die Parameter mit denen die Controllermethode aufgerufen wird zurück
+	 *
+	 * @return array
+	 */
+	private function getArguments() {
+		return $this->arguments;
+	}
 }
 
 ?>

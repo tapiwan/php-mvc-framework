@@ -115,7 +115,7 @@ class Response implements IResponse {
     public function send() {
         http_response_code($this->status);
 
-        if(count($this->headers) >= 0) {
+        if(count($this->headers) > 0) {
             foreach($this->headers as $key => $value) {
                 header("$key: $value");
             }

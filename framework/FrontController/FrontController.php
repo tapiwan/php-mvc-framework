@@ -11,242 +11,147 @@ use bitbetrieb\MVC\FrontController\Route as Route;
  * @package bitbetrieb\MVC\FrontController
  */
 class FrontController implements IFrontController {
-    /**
-     * Request Object
-     *
-     * @var IRequest
-     */
-    private $request;
+	/**
+	 * Request Object
+	 *
+	 * @var IRequest
+	 */
+	private $request;
 
-    /**
-     * Routen Array
-     *
-     * @var array
-     */
-    private $routes = [];
+	/**
+	 * Routen Array
+	 *
+	 * @var array<Route>
+	 */
+	private $routes = [];
 
-    /**
-     * Error Handler
-     *
-     * @var array
-     */
-    private $errorHandler;
+	/**
+	 * Error Handler
+	 *
+	 * @var Route
+	 */
+	private $errorHandler;
 
-    /**
-     * Extensions Array
-     *
-     * @var array
-     */
-    private $extensions = [];
+	/**
+	 * FrontController constructor.
+	 *
+	 * @param IRequest $request
+	 */
+	public function __construct(IRequest $request) {
+		$this->request = $request;
+	}
 
-    /**
-     * Flag ob Extensions geladen wurden
-     */
-    private $extensionsLoaded = false;
+	/**
+	 * GET Route hinzufügen
+	 *
+	 * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
+	 * @param string $callable Zeichenkette in Form von "controller@funktion"
+	 */
+	public function get($route, $callable) {
+		$this->addRoute("GET", $route, $callable);
+	}
 
-    /**
-     * Parameter welche an alle Routen übergeben werden sollen
-     */
-    private $routeParameters = [];
+	/**
+	 * POST Route hinzufügen
+	 *
+	 * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
+	 * @param string $callable Zeichenkette in Form von "controller@funktion"
+	 */
+	public function post($route, $callable) {
+		$this->addRoute("POST", $route, $callable);
+	}
 
-    /**
-     * Namespace Prefix der Controller, optional
-     *
-     * @var string
-     */
-    private $controllerNamespacePrefix = "";
+	/**
+	 * PUT Route hinzufügen
+	 *
+	 * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
+	 * @param string $callable Zeichenkette in Form von "controller@funktion"
+	 */
+	public function put($route, $callable) {
+		$this->addRoute("PUT", $route, $callable);
+	}
 
-    /**
-     * FrontController constructor.
-     *
-     * @param IRequest $request
-     */
-    public function __construct(IRequest $request) {
-        $this->request = $request;
-    }
+	/**
+	 * DELETE Route hinzufügen
+	 *
+	 * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
+	 * @param string $callable Zeichenkette in Form von "controller@funktion"
+	 */
+	public function delete($route, $callable) {
+		$this->addRoute("DELETE", $route, $callable);
+	}
 
-    /**
-     * Fügt dem Front Controller eine Extension hinzu
-     *
-     * @param $file
-     */
-    public function addExtension($file) {
-        $this->extensions[] = $file;
-    }
+	/**
+	 * Route hinzufügen
+	 *
+	 * @param string $httpMethod HTTP Methode
+	 * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
+	 * @param string $callable Zeichenkette in Form von "controller@funktion"
+	 */
+	public function addRoute($httpMethod, $route, $callable) {
+		$this->routes[] = new Route($route, $httpMethod, $this->getPrefixedCallable($callable));
+	}
 
-    /**
-     * Lädt eine Extension
-     *
-     * @param string $file Pfad zur Extension Datei
-     */
-    public function loadExtension($file) {
-        require_once $file;
-    }
+	/**
+	 * Setzt Callable für Fehlerfälle
+	 *
+	 * @param string $callable Zeichenkette in Form von "controller@funktion"
+	 */
+	public function setErrorHandler($callable) {
+		$this->errorHandler = new Route(null, null, $this->getPrefixedCallable($callable));
+	}
 
-    /**
-     * Lädt alle Extensions des Front Controllers
-     */
-    public function loadExtensions() {
-        if(count($this->extensions) > 0 && !$this->extensionsLoaded) {
-            foreach($this->extensions as $extension) {
-                if(file_exists($extension)) {
-                    $this->loadExtension($extension);
-                }
-            }
-        }
+	/**
+	 * Adds the controller namespace prefix to the callable
+	 *
+	 * @param $callable
+	 * @return string
+	 */
+	private function getPrefixedCallable($callable) {
+		return "\\bitbetrieb\\MVC\\Controller\\".$callable;
+	}
 
-        $this->extensionsLoaded = true;
-    }
+	/**
+	 * Passende Route ausfindig machen.
+	 * Wenn Route existiert diese ausführen und Request und Response übergeben
+	 * Wenn Route nicht existiert dann wird der Error Handler aufgerufen, ebenfalls mit Request und Response
+	 */
+	public function execute() {
+		//Find route
+		$route = $this->findRoute();
 
-    /**
-     * Fügt einen Routen Parameter hinzu
-     *
-     * @param mixed $parameter
-     */
-    public function addRouteParameter($parameter) {
-        $this->routeParameters[] = $parameter;
-    }
+		//Add the request to the arguments of the route
+		$route->addArgument($this->request);
 
-    /**
-     * Gibt die Routen Parameter zurück
-     *
-     * @return array
-     */
-    public function getRouteParameters() {
-        return $this->routeParameters;
-    }
+		//Invoke the route via the URI
+		$route->invoke($this->request->uri());
+	}
 
-    /**
-     * Setzt den Namespace der Controller
-     *
-     * @param string $controllerNamespacePrefix
-     */
-    public function setControllerNamespacePrefix($controllerNamespacePrefix) {
-        $this->controllerNamespacePrefix = $controllerNamespacePrefix;
-    }
+	/**
+	 * Lädt eine Konfigurationsdatei des Front Controllers
+	 *
+	 * @param string $file Pfad zur Konfigurationsdatei
+	 */
+	public function load($file) {
+		require_once($file);
+	}
 
-    /**
-     * Gibt den Namespace Prefix der Controller zurück
-     *
-     * @return string
-     */
-    public function getControllerNamespacePrefix() {
-        return $this->controllerNamespacePrefix;
-    }
+	/**
+	 * Sucht die vom Nutzer aufgerufenen Route. Wird diese nicht gefunden wird der Error Handler zurückgegeben
+	 *
+	 * @return IRoute $result
+	 */
+	private function findRoute() {
+		$result = $this->errorHandler;
 
-    /**
-     * GET Route hinzufügen
-     *
-     * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
-     * @param string $callable Zeichenkette in Form von "controller@funktion"
-     */
-    public function get($route, $callable) {
-        $this->addRoute("GET", $route, $callable);
-    }
+		foreach ($this->routes as $route) {
+			if ($route->matches($this->request)) {
+				$result = $route;
+			}
+		}
 
-    /**
-     * POST Route hinzufügen
-     *
-     * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
-     * @param string $callable Zeichenkette in Form von "controller@funktion"
-     */
-    public function post($route, $callable) {
-        $this->addRoute("POST", $route, $callable);
-    }
-
-    /**
-     * PUT Route hinzufügen
-     *
-     * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
-     * @param string $callable Zeichenkette in Form von "controller@funktion"
-     */
-    public function put($route, $callable) {
-        $this->addRoute("PUT", $route, $callable);
-    }
-
-    /**
-     * DELETE Route hinzufügen
-     *
-     * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
-     * @param string $callable Zeichenkette in Form von "controller@funktion"
-     */
-    public function delete($route, $callable) {
-        $this->addRoute("DELETE", $route, $callable);
-    }
-
-    /**
-     * Route hinzufügen
-     *
-     * @param string $httpMethod HTTP Methode
-     * @param string $route Route mit Platzhaltern in Form von "/diese/route/hat/{variable1}/und/{variable2}"
-     * @param string $callable Zeichenkette in Form von "controller@funktion"
-     */
-    public function addRoute($httpMethod, $route, $callable) {
-        $this->routes[] = new Route($route, $httpMethod, $this->getPrefixedCallable($callable));
-    }
-
-    /**
-     * Setzt Callable für Fehlerfälle
-     *
-     * @param string $callable Zeichenkette in Form von "controller@funktion"
-     */
-    public function setErrorHandler($callable) {
-        $this->errorHandler = new Route(null, null, $this->getPrefixedCallable($callable));
-    }
-
-    /**
-     * Adds the controller namespace prefix to the callable
-     *
-     * @param $callable
-     * @return string
-     */
-    private function getPrefixedCallable($callable) {
-        return $this->getControllerNamespacePrefix().$callable;
-    }
-
-    /**
-     * Passende Route ausfindig machen.
-     * Wenn Route existiert diese ausführen und Request und Response übergeben
-     * Wenn Route nicht existiert dann wird der Error Handler aufgerufen, ebenfalls mit Request und Response
-     */
-    public function execute() {
-        //Load extensions if not loaded yet
-        $this->loadExtensions();
-
-        //Find route
-        $route = $this->findRoute();
-
-        //Add request to route parameters
-        $this->addRouteParameter($this->request);
-
-        //Set the invocation arguments of the route
-        $route->setArguments($this->getRouteParameters());
-
-        //Set the uri of the route
-        $route->setUri($this->request->uri());
-
-        //Invoke
-        $route->invoke();
-    }
-
-    /**
-     * Sucht die vom Nutzer aufgerufenen Route. Wird diese nicht gefunden wird der Error Handler zurückgegeben
-     *
-     * @return IRoute $result
-     */
-    private function findRoute() {
-        $result = $this->errorHandler;
-
-        foreach($this->routes as $route) {
-            if($route->httpMethodsMatch($this->request->method())) {
-                if($route->uriMatchesRegex($this->request->uri())) {
-                    $result = $route;
-                }
-            }
-        }
-
-        return $result;
-    }
+		return $result;
+	}
 }
 
 ?>
