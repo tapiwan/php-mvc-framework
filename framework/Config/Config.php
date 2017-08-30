@@ -61,7 +61,7 @@ class Config implements IConfig {
 	 *
 	 * @param $file
 	 */
-	private static function loadJSON($file) {
+	public static function loadJSON($file) {
 		if (file_exists($file)) {
 			self::$map = json_decode(file_get_contents($file), true);
 		}

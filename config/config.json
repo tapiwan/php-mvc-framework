@@ -10,11 +10,5 @@
   },
   "directories": {
     "views": "/resources/views"
-  },
-  "files": {
-    "routes": "/app/routes.php"
-  },
-  "controller": {
-    "namespace": "\\bitbetrieb\\MVC\\Controller\\"
   }
 }

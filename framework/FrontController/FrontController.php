@@ -124,7 +124,7 @@ class FrontController implements IFrontController {
 		$route->addArgument($this->request);
 
 		//Invoke the route via the URI
-		$route->invoke($this->request->uri());
+		$route->invoke($this->request);
 	}
 
 	/**

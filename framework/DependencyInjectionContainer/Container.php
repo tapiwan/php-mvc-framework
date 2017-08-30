@@ -107,8 +107,13 @@ class Container implements IContainer {
 
 				//Löse Abhängigkeiten auf
 				$arguments = [];
-				foreach ($item->dependencies as $dependencyId) {
-					array_push($arguments, self::get($dependencyId));
+				foreach ($item->dependencies as $dependency) {
+					if(!self::has($dependency)) {
+						array_push($arguments, $dependency);
+					}
+					else {
+						array_push($arguments, self::get($dependency));
+					}
 				}
 
 				//Erzeuge Instanz mit Abhängigkeiten

@@ -147,9 +147,19 @@ class Autoloader {
 	 *
 	 * @return void
 	 */
-	public function load($file) {
+	public function loadJSON($file) {
 		if (file_exists($file)) {
-			require_once($file);
+			//JSON Zeichenkette decodieren
+			$autoloadJSON = json_decode(file_get_contents($file), true);
+
+			//Namespace Prefix mit Quellordnern hinzufügen
+			foreach($autoloadJSON as $namespacePrefix => $baseDirectories) {
+				foreach($baseDirectories as $baseDirectory) {
+					$this->addNamespace($namespacePrefix, realpath('../' . $baseDirectory));
+				}
+			}
+
+			$this->register();
 		}
 	}
 }

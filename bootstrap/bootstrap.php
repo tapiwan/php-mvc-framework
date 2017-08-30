@@ -3,7 +3,9 @@
 require_once(FRAMEWORK_PATH."/framework/Autoloader/Autoloader.php");
 
 use bitbetrieb\MVC\Autoloader\Autoloader;
+use bitbetrieb\MVC\Config\Config;
 use bitbetrieb\MVC\DependencyInjectionContainer\Container;
+use bitbetrieb\MVC\Template\Template;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,7 +16,27 @@ use bitbetrieb\MVC\DependencyInjectionContainer\Container;
 |
 */
 $autoloader = new Autoloader();
-$autoloader->load(FRAMEWORK_PATH."/config/autoload.php");
+$autoloader->loadJSON(FRAMEWORK_PATH."/config/autoload.json");
+
+/*
+|--------------------------------------------------------------------------
+| Load the config
+|--------------------------------------------------------------------------
+|
+| We load the config so we have global access to configuration
+|
+*/
+Config::loadJSON(FRAMEWORK_PATH."/config/config.json");
+
+/*
+|--------------------------------------------------------------------------
+| Set template paths
+|--------------------------------------------------------------------------
+|
+| We configure the global template path
+|
+*/
+Template::setViewDirectory(FRAMEWORK_PATH.Config::get('directories/views'));
 
 /*
 |--------------------------------------------------------------------------
