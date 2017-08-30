@@ -9,17 +9,17 @@ use bitbetrieb\MVC\DependencyInjectionContainer\Container as Container;
  * @package bitbetrieb\MVC\Template
  */
 class Template implements ITemplate {
-    /**
-     * Verzeichnis in dem alle Template Dateien liegen
-     *
-     * @var string
-     */
-    private static $viewDirectory = "";
+	/**
+	 * Verzeichnis in dem alle Template Dateien liegen
+	 *
+	 * @var string
+	 */
+	private static $viewDirectory = "";
 
-    /**
-     * Verzeichnis in dem dieses Template liegt
-     */
-    private $fileDirectory = "";
+	/**
+	 * Verzeichnis in dem dieses Template liegt
+	 */
+	private $fileDirectory = "";
 
 	/**
 	 * Name der Template-Datei
@@ -44,15 +44,15 @@ class Template implements ITemplate {
 
 	/**
 	 * Name des momentanen aktiven Blocks
-     *
-     * @var string
+	 *
+	 * @var string
 	 */
 	private $currentBlock = "";
 
 	/**
 	 * Flag welche angibt ob gerade gerendert wird
-     *
-     * @var bool
+	 *
+	 * @var bool
 	 */
 	private $rendering = false;
 
@@ -63,8 +63,8 @@ class Template implements ITemplate {
 	 * @param array $vars Variablen des Templates
 	 */
 	public function __construct($file, $vars = [], $fileDirectory = "") {
-		$this->file = $file;
-		$this->vars = $vars;
+		$this->file          = $file;
+		$this->vars          = $vars;
 		$this->fileDirectory = $fileDirectory;
 	}
 
@@ -93,23 +93,23 @@ class Template implements ITemplate {
 		}
 	}
 
-    /**
-     * Setzt das Verzeichnis in dem alle Templates liegen
-     *
-     * @param $dir
-     */
+	/**
+	 * Setzt das Verzeichnis in dem alle Templates liegen
+	 *
+	 * @param $dir
+	 */
 	public static function setViewDirectory($dir) {
-	    self::$viewDirectory = $dir;
-    }
+		self::$viewDirectory = $dir;
+	}
 
-    /**
-     * Setzt das Verzeichnis in dem dieses Template liegt
-     *
-     * @param $dir
-     */
-    public function setFileDirectory($dir) {
-	    $this->fileDirectory = $dir;
-    }
+	/**
+	 * Setzt das Verzeichnis in dem dieses Template liegt
+	 *
+	 * @param $dir
+	 */
+	public function setFileDirectory($dir) {
+		$this->fileDirectory = $dir;
+	}
 
 	/**
 	 * Startet einen neuen Block
@@ -203,12 +203,11 @@ class Template implements ITemplate {
 	 * @return string
 	 */
 	private function resolveFilePath($file) {
-	    if(!empty($this->fileDirectory)) {
-	        return $this->fileDirectory.DIRECTORY_SEPARATOR.$file;
-        }
-        else if(!empty(self::$viewDirectory)) {
-	        return self::$viewDirectory.DIRECTORY_SEPARATOR.$file;
-        }
+		if (!empty($this->fileDirectory)) {
+			return $this->fileDirectory.DIRECTORY_SEPARATOR.$file;
+		} else if (!empty(self::$viewDirectory)) {
+			return self::$viewDirectory.DIRECTORY_SEPARATOR.$file;
+		}
 
 		return $file;
 	}

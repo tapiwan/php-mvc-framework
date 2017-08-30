@@ -7,39 +7,39 @@ namespace bitbetrieb\MVC\DatabaseHandler;
  * @package bitbetrieb\MVC\DatabaseHandler
  */
 class QueryResult implements IQueryResult {
-    private $success;
-    private $data = [];
-    private $lastInsertId;
+	private $success;
+	private $data = [];
+	private $lastInsertId;
 
-    public function setSuccess($success) {
-        $this->success = $success;
-    }
+	public function setSuccess($success) {
+		$this->success = $success;
+	}
 
-    public function addData($data) {
-        $this->data[] = $data;
-    }
+	public function addData($data) {
+		$this->data[] = $data;
+	}
 
-    public function setData(Array $data) {
-        foreach($data as $item) {
-            $this->addData($item);
-        };
-    }
+	public function setData(Array $data) {
+		foreach ($data as $item) {
+			$this->addData($item);
+		};
+	}
 
-    public function setLastInsertId($lastInsertId) {
-        $this->lastInsertId = $lastInsertId;
-    }
+	public function setLastInsertId($lastInsertId) {
+		$this->lastInsertId = $lastInsertId;
+	}
 
-    public function getSuccess() {
-        return $this->success;
-    }
+	public function getSuccess() {
+		return $this->success;
+	}
 
-    public function getData() {
-        return $this->data;
-    }
+	public function getData() {
+		return $this->data;
+	}
 
-    public function getLastInsertId() {
-        return $this->lastInsertId;
-    }
+	public function getLastInsertId() {
+		return $this->lastInsertId;
+	}
 }
 
 ?>

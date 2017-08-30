@@ -133,7 +133,9 @@ class FrontController implements IFrontController {
 	 * @param string $file Pfad zur Konfigurationsdatei
 	 */
 	public function load($file) {
-		require_once($file);
+		if (file_exists($file)) {
+			require_once($file);
+		}
 	}
 
 	/**

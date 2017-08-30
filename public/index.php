@@ -7,7 +7,7 @@
 | We define some global variables here so we have them available everywhere.
 |
 */
-define('APP_PATH', dirname(__DIR__));
+define('FRAMEWORK_PATH', dirname(__DIR__));
 define('BASE_PATH', $_SERVER['DOCUMENT_ROOT']);
 
 /*
@@ -18,6 +18,6 @@ define('BASE_PATH', $_SERVER['DOCUMENT_ROOT']);
 | We require the bootstrap file
 |
 */
-require_once(APP_PATH."/bootstrap/bootstrap.php");
+require_once(FRAMEWORK_PATH."/bootstrap/bootstrap.php");
 
 ?>

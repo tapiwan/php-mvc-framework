@@ -1,43 +1,42 @@
 <?php
 
-require_once(APP_PATH."/framework/Autoloader/Autoloader.php");
+require_once(FRAMEWORK_PATH."/framework/Autoloader/Autoloader.php");
 
-use bitbetrieb\MVC\Autoloader\Autoloader as Autoloader;
-use bitbetrieb\MVC\DependencyInjectionContainer\Container as Container;
+use bitbetrieb\MVC\Autoloader\Autoloader;
+use bitbetrieb\MVC\DependencyInjectionContainer\Container;
 
 /*
 |--------------------------------------------------------------------------
 | Setup autoloader
 |--------------------------------------------------------------------------
 |
-| We load the namespaces prefixes with their base directories from an external json file
+| We load the namespaces prefixes with their base directories
 |
 */
 $autoloader = new Autoloader();
-$autoloadList = file_get_contents(APP_PATH."/config/autoload.json");
-$autoloader->initializeViaJSON($autoloadList);
+$autoloader->load(FRAMEWORK_PATH."/config/autoload.php");
 
 /*
 |--------------------------------------------------------------------------
 | Set dependency injection container
 |--------------------------------------------------------------------------
 |
-| We set up the dependencies of the DI container so we can use them globally
+| We set up the components of the DI container so we can use them globally
 |
 */
-$containerList = file_get_contents(APP_PATH."/config/container.json");
-Container::initializeViaJSON($containerList);
-
+Container::load(FRAMEWORK_PATH."/config/components.php");
 
 /*
 |--------------------------------------------------------------------------
-| Start application
+| Start front controller
 |--------------------------------------------------------------------------
 |
-| We start the application, by retrieving it from the DI container
+| We start the front controller, by retrieving it from the DI container
+| and executing it
 |
 */
-$application = Container::get('application');
-$application->start();
+$frontController = Container::get('front-controller');
+$frontController->load(FRAMEWORK_PATH."/app/routes.php");
+$frontController->execute();
 
 ?>

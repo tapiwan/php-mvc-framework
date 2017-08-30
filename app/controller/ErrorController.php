@@ -2,9 +2,9 @@
 
 namespace bitbetrieb\MVC\Controller;
 
-use bitbetrieb\MVC\HTTP\Request as Request;
-use bitbetrieb\MVC\HTTP\Response as Response;
-use bitbetrieb\MVC\Template\Template as Template;
+use bitbetrieb\MVC\HTTP\Request;
+use bitbetrieb\MVC\HTTP\Response ;
+use bitbetrieb\MVC\Template\Template;
 
 /**
  * Class ErrorController
