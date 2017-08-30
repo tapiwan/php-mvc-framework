@@ -3,7 +3,8 @@
 namespace bitbetrieb\MVC\DatabaseHandler;
 
 interface IQueryObject {
-    public function selectFrom($columns, $tables);
+    public function select($columns);
+    public function from($tables);
     public function insertInto($tables, $data);
     public function update($tables, $data);
     public function deleteFrom($tables);

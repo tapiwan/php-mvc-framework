@@ -5,14 +5,21 @@ namespace bitbetrieb\MVC\DatabaseHandler;
 class QueryObject implements IQueryObject {
     private $queryParts;
 
-    public function selectFrom($columns, $tables) {
+    public function select($columns) {
         $columnsString = $this->columnsToString($columns);
-        $tablesString = $this->tablesToString($tables);
 
-        $this->addQueryPart("SELECT $columnsString FROM $tablesString");
+        $this->addQueryPart("SELECT $columnsString");
 
         return $this;
     }
+
+	public function from($tables) {
+		$tablesString = $this->tablesToString($tables);
+
+		$this->addQueryPart("FROM $tablesString");
+
+		return $this;
+	}
 
     public function insertInto($tables, $data) {
         $tablesString = $this->tablesToString($tables);
