@@ -7,9 +7,8 @@ namespace bitbetrieb\MVC\Config;
  * @package bitbetrieb\MVC\Config
  */
 interface IConfig {
-    public function __construct($file);
-    public function get($key);
-    public function set($key, $value);
+    public static function get($key);
+    public static function set($key, $value);
 }
 
 ?>

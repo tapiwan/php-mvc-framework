@@ -59,29 +59,6 @@ class Container implements IContainer {
     }
 
     /**
-     * JSON Datei auslesen und Dependencies zur Map hinzufügen
-     *
-     * @param string $json JSON String der eingelesen wird
-     */
-    public static function initializeViaJSON($json) {
-        # Read file
-        $mapJSON = json_decode($json);
-
-        # Add namespaces and base directories from JSON to autoloader
-        foreach($mapJSON as $item) {
-            if($item->type === 'value') {
-                self::addValue($item->id, $item->value);
-            }
-            else if($item->type === 'class') {
-                self::addClass($item->id, $item->class, $item->dependencies);
-            }
-            else if($item->type === 'singleton') {
-                self::addSingleton($item->id, $item->class, $item->dependencies);
-            }
-        }
-    }
-
-    /**
      * Überprüft ob die Dependency existiert
      *
      * @param $id
@@ -148,6 +125,15 @@ class Container implements IContainer {
                 return $instance;
             }
         }
+    }
+
+	/**
+    * Lädt eine Konfigurationsdatei des Containers
+    *
+	 * @param $file
+	 */
+    public static function load($file) {
+        require_once($file);
     }
 }
 
