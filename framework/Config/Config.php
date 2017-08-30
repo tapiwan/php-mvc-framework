@@ -18,7 +18,7 @@ class Config implements IConfig {
      *
      */
     public function __construct($file) {
-        $this->load($file);
+        $this->loadJSON($file);
     }
 
     /**
@@ -28,10 +28,11 @@ class Config implements IConfig {
      * @return bool|mixed
      */
     public function get($key) {
-        $keyStack = explode('/', $key);
+        $accessors = explode('/', $key);
+
         $current = &$this->map;
 
-        foreach($keyStack as $accessor) {
+        foreach($accessors as $accessor) {
             if(!isset($current[$accessor])) return false;
 
             $current = &$current[$accessor];
@@ -47,7 +48,19 @@ class Config implements IConfig {
      * @param $value
      */
     public function set($key, $value) {
-        $this->map[$key] = $value;
+	    $accessors = explode('/', $key);
+
+	    $i = 0;
+	    $len = count($accessors) - 1;
+	    $current = &$this->map;
+
+	    foreach($accessors as $accessor) {
+		    if(!isset($current[$accessor])) $current[$accessor] = [];
+
+		    $current = &$current[$accessor];
+	    }
+
+        $current = $value;
     }
 
     /**
@@ -55,7 +68,7 @@ class Config implements IConfig {
      *
      * @param $file
      */
-    private function load($file) {
+    private function loadJSON($file) {
         $this->map = json_decode(file_get_contents($file), true);
     }
 }
