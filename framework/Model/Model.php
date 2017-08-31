@@ -189,6 +189,8 @@ abstract class Model implements IModel {
 		if ($result->getLastInsertId() != 0) {
 			$this->{$this->primaryKey} = $result->getLastInsertId();
 		}
+
+        return $result->getSuccess();
 	}
 
 	/**
